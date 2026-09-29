@@ -11,7 +11,6 @@
     .navbar { background-color: #161b22; border-bottom: 1px solid #21262d; }
     .card-custom { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; }
     
-    /* Styling Tabel Gelap (Dark Table) */
     .table-dark-custom { background-color: #161b22; color: #c9d1d9; border-color: #30363d; }
     .table-dark-custom th { background-color: #0d1117 !important; color: #8b949e !important; border-bottom: 1px solid #30363d !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
     .table-dark-custom td { background-color: #161b22 !important; color: #e6edf3 !important; border-bottom: 1px solid #21262d !important; vertical-align: middle; }
@@ -172,12 +171,33 @@
             <a href="${v.watchUrl}" target="_blank" class="btn btn-sm btn-action me-1">
               <i class="fa-solid fa-arrow-up-right-from-square me-1 text-info"></i>Halaman
             </a>
-            <button onclick="copyText('<iframe src=\\'${v.embedUrl}\\' width=\\'100%\\' height=\\'100%\\' frameborder=\\'0\\' allowfullscreen></iframe>')" class="btn btn-sm btn-action">
+            <button onclick="copyText('<iframe src=\\'${v.embedUrl}\\' width=\\'100%\\' height=\\'100%\\' frameborder=\\'0\\' allowfullscreen></iframe>')" class="btn btn-sm btn-action me-1">
               <i class="fa-solid fa-code me-1 text-secondary"></i>Embed
+            </button>
+            <button onclick="deleteVideo('${v.id}', '${v.title}')" class="btn btn-sm btn-action text-danger" title="Hapus Video">
+              <i class="fa-solid fa-trash"></i>
             </button>
           </td>
         </tr>
       `).join('');
+    }
+
+    // Fungsi Hapus Video
+    async function deleteVideo(videoId, title) {
+      if (confirm(`Apakah Anda yakin ingin menghapus video "${title}"?`)) {
+        try {
+          const res = await fetch(`/api/delete?id=${videoId}`, { method: 'DELETE' });
+          const data = await res.json();
+          if (data.success) {
+            alert('Video berhasil dihapus!');
+            loadVideos();
+          } else {
+            alert('Gagal menghapus video: ' + data.error);
+          }
+        } catch (err) {
+          alert('Terjadi kesalahan saat menghapus video.');
+        }
+      }
     }
 
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
@@ -195,10 +215,7 @@
       progress.classList.remove('d-none');
 
       try {
-        const res = await fetch('/api/upload', {
-          method: 'POST',
-          body: formData
-        });
+        const res = await fetch('/api/upload', { method: 'POST', body: formData });
         const data = await res.json();
 
         if (data.success) {

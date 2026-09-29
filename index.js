@@ -3,12 +3,12 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔗 MASUKKAN 2 URL DIRECT LINK BERBEDA DI SINI
+    // 🔗 DIRECT LINKS FOR ADS
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1";
-    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2";
+    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Green Button Link
+    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Red Button Link
 
-    // 1. Endpoint API untuk Mengambil Daftar Semua Video
+    // 1. API Endpoint to Get List of All Videos
     if (url.pathname === '/api/videos' && request.method === 'GET') {
       try {
         const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
@@ -42,7 +42,7 @@ export default {
       }
     }
 
-    // 2. Endpoint API untuk Mengunggah Video (Dengan Custom Title)
+    // 2. API Endpoint to Upload Video (With Custom Title)
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
@@ -56,9 +56,7 @@ export default {
           });
         }
 
-        // Pakai customTitle jika diisi, jika kosong pakai nama asli file
         const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : videoFile.name;
-
         const videoId = Math.random().toString(36).substring(2, 10);
         const arrayBuffer = await videoFile.arrayBuffer();
 
@@ -89,7 +87,7 @@ export default {
       }
     }
 
-    // 3. Endpoint API Hapus Video
+    // 3. API Endpoint to Delete Video
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
         const videoId = url.searchParams.get('id');
@@ -112,13 +110,13 @@ export default {
       }
     }
 
-    // 4. Endpoint Raw Stream Video
+    // 4. Raw Stream Video Endpoint
     if (url.pathname.startsWith('/stream/')) {
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
 
       if (!videoData.value) {
-        return new Response('Video tidak ditemukan atau telah dihapus.', { status: 404 });
+        return new Response('Video not found or has been deleted.', { status: 404 });
       }
 
       return new Response(videoData.value, {
@@ -130,20 +128,20 @@ export default {
       });
     }
 
-    // 5. Endpoint Halaman Nonton Khusus (/v/videoId)
+    // 5. Watch Page Endpoint (/v/videoId)
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
 
       if (!videoData.metadata) {
-        return new Response('Video tidak ditemukan.', { status: 404 });
+        return new Response('Video not found.', { status: 404 });
       }
 
       const streamUrl = `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
 
       const watchHtml = `<!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,7 +149,7 @@ export default {
 
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="Tonton video ${title} di StreamMax.">
+  <meta property="og:description" content="Watch ${title} on StreamMax.">
   <meta property="og:url" content="${url.href}">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -181,16 +179,17 @@ export default {
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
-            Browser Anda tidak mendukung pemutaran video ini.
+            Your browser does not support video playback.
           </video>
         </div>
 
+        <!-- HIGH CTR BUTTONS -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
           <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
-            <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)
+            <i class="fa-solid fa-circle-play me-2"></i>WATCH FULL LENGTH VIDEO
           </a>
           <a href="${ADSTERRA_DIRECT_LINK_2}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-stream py-2 px-4 shadow-sm w-100">
-            <i class="fa-solid fa-fire me-2"></i>Nonton Tanpa Buffering (Server 2)
+            <i class="fa-solid fa-forward me-2"></i>NEXT EPISODE / PART 2
           </a>
         </div>
       </div>
@@ -204,13 +203,13 @@ export default {
       });
     }
 
-    // 6. Endpoint Pemutar Tersemat (/embed/videoId)
+    // 6. Embed Player Endpoint (/embed/videoId)
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
       const streamUrl = `${url.origin}/stream/${videoId}`;
       
       const embedHtml = `<!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -238,10 +237,10 @@ export default {
   
   <div class="buttons-container">
     <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">
-      <i class="fa-solid fa-bolt"></i> Download HD Fast Speed (Server 1)
+      <i class="fa-solid fa-circle-play"></i> WATCH FULL LENGTH VIDEO
     </a>
     <a href="${ADSTERRA_DIRECT_LINK_2}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-red">
-      <i class="fa-solid fa-fire"></i> Nonton Tanpa Buffering (Server 2)
+      <i class="fa-solid fa-forward"></i> NEXT EPISODE / PART 2
     </a>
   </div>
 </body>

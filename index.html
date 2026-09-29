@@ -45,7 +45,12 @@
       <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Unggah Video Baru</h5>
       <form id="uploadForm">
         <div class="mb-3">
+          <label class="form-label text-muted small">1. Pilih Berkas Video</label>
           <input type="file" id="videoInput" class="form-control bg-dark text-light border-secondary" accept="video/*" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-muted small">2. Judul Custom (Opsional - Kosongkan jika ingin pakai nama file)</label>
+          <input type="text" id="titleInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan judul video baru di sini...">
         </div>
         <button type="submit" id="uploadBtn" class="btn btn-purple px-4 fw-bold">
           <i class="fa-solid fa-upload me-2"></i>Mulai Proses Upload
@@ -113,7 +118,7 @@
   </div>
 
   <footer class="text-center text-muted small py-4">
-    StreamMax Indonesia © 2026.
+    StreamMax © 2026.
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -200,6 +205,7 @@
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fileInput = document.getElementById('videoInput');
+      const titleInput = document.getElementById('titleInput');
       const uploadBtn = document.getElementById('uploadBtn');
       const progress = document.getElementById('uploadProgress');
 
@@ -207,6 +213,7 @@
 
       const formData = new FormData();
       formData.append('video', fileInput.files[0]);
+      formData.append('title', titleInput.value.trim());
 
       uploadBtn.disabled = true;
       progress.classList.remove('d-none');
@@ -218,6 +225,7 @@
         if (data.success) {
           alert('Video berhasil diunggah!');
           fileInput.value = '';
+          titleInput.value = '';
           loadVideos();
         } else {
           alert('Gagal unggah: ' + data.error);

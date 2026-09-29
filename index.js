@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA ANDA DI SINI
+    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA/ADS ANDA DI SINI
     // ==========================================
     const ADSTERRA_DIRECT_LINK = "https://nooseamazingbatch.com/xzs0px43?key=15b1073c21c922d059dc880ed8c33bca";
 
@@ -61,7 +61,6 @@ export default {
         const videoId = Math.random().toString(36).substring(2, 10);
         const arrayBuffer = await videoFile.arrayBuffer();
 
-        // Simpan video dan metadatanya ke Cloudflare KV Storage
         await env.VIDEOS_KV.put(`video:${videoId}`, arrayBuffer, {
           metadata: {
             title: videoFile.name,
@@ -92,7 +91,7 @@ export default {
       }
     }
 
-    // 3. Endpoint Streaming Video
+    // 3. Endpoint Raw Stream (Untuk pemutaran berkas video murni)
     if (url.pathname.startsWith('/stream/')) {
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
@@ -143,11 +142,8 @@ export default {
     .card-custom { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; }
     .btn-action { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; text-decoration: none; display: inline-flex; align-items: center; }
     .btn-action:hover { background-color: #30363d; color: #fff; }
-    
-    /* Style Tombol Iklan */
     .btn-ad-download { background: linear-gradient(45deg, #28a745, #20c997); color: #fff; border: none; font-weight: bold; text-decoration: none; }
     .btn-ad-download:hover { background: linear-gradient(45deg, #218838, #1baa80); color: #fff; }
-    
     .btn-ad-stream { background: linear-gradient(45deg, #dc3545, #fd7e14); color: #fff; border: none; font-weight: bold; text-decoration: none; }
     .btn-ad-stream:hover { background: linear-gradient(45deg, #c82333, #e06d12); color: #fff; }
   </style>
@@ -162,15 +158,12 @@ export default {
   <div class="container my-4">
     <div class="row justify-content-center">
       <div class="col-lg-10">
-        <!-- Pemutar Video -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
-            Browser Anda tidak mendukung pemutaran video ini.
           </video>
         </div>
 
-        <!-- Tombol Promosi Iklan / Direct Link High CTR -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
           <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)
@@ -180,7 +173,6 @@ export default {
           </a>
         </div>
 
-        <!-- Detail Video & Fitur Salin -->
         <div class="card card-custom p-4 mb-4">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
             <div>
@@ -189,16 +181,12 @@ export default {
             </div>
             <a href="/" class="btn btn-sm btn-action"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
           </div>
-          
           <hr class="border-secondary opacity-25 my-3">
-
           <div class="d-flex flex-wrap gap-2 mb-3">
-            <!-- Tombol Bagikan & Salin -->
             <button onclick="shareVideo()" class="btn btn-action"><i class="fa-solid fa-share-nodes me-2"></i>Bagikan</button>
             <button onclick="copyLink()" class="btn btn-action"><i class="fa-solid fa-link me-2"></i>Salin Tautan</button>
             <button onclick="copyEmbed()" class="btn btn-action"><i class="fa-solid fa-code me-2"></i>Salin Embed</button>
           </div>
-
           <div class="mt-2">
             <label class="form-label small text-muted">Kode Embed iFrame:</label>
             <input type="text" class="form-control bg-dark text-light border-secondary" value="${embedCode}" readonly id="embedInput">
@@ -209,28 +197,9 @@ export default {
   </div>
 
   <script>
-    function copyLink() {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Tautan video berhasil disalin!');
-    }
-
-    function copyEmbed() {
-      const embedInput = document.getElementById('embedInput');
-      embedInput.select();
-      navigator.clipboard.writeText(embedInput.value);
-      alert('Kode embed berhasil disalin!');
-    }
-
-    function shareVideo() {
-      if (navigator.share) {
-        navigator.share({
-          title: '${title}',
-          url: window.location.href
-        });
-      } else {
-        copyLink();
-      }
-    }
+    function copyLink() { navigator.clipboard.writeText(window.location.href); alert('Tautan disalin!'); }
+    function copyEmbed() { const input = document.getElementById('embedInput'); input.select(); navigator.clipboard.writeText(input.value); alert('Embed disalin!'); }
+    function shareVideo() { if (navigator.share) { navigator.share({ title: '${title}', url: window.location.href }); } else { copyLink(); } }
   </script>
 </body>
 </html>`;
@@ -240,7 +209,7 @@ export default {
       });
     }
 
-    // 5. Endpoint Pemutar Tersemat (iFrame Embed Page)
+    // 5. Endpoint Pemutar Tersemat (/embed/videoId) - DENGAN TOMBOL IKLAN DI BAWAH PLAYER
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
       const streamUrl = `${url.origin}/stream/${videoId}`;
@@ -251,17 +220,40 @@ export default {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Embed Video</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body, html { width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    body, html { width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif; }
+    .video-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
     video { width: 100%; height: 100%; object-fit: contain; }
+    
+    /* Container Tombol di bawah Video */
+    .buttons-container { display: flex; gap: 8px; padding: 10px; background: #0d1117; border-top: 1px solid #21262d; }
+    .btn-ad { flex: 1; padding: 10px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
+    
+    .btn-green { background: #2ea44f; color: #fff; }
+    .btn-green:hover { background: #2c974b; }
+    
+    .btn-red { background: #da3633; color: #fff; }
+    .btn-red:hover { background: #b62324; }
   </style>
 </head>
 <body>
-  <video controls autoplay playsinline preload="metadata">
-    <source src="${streamUrl}" type="video/mp4">
-    Browser Anda tidak mendukung pemutaran video ini.
-  </video>
+  <div class="video-wrapper">
+    <video controls autoplay playsinline preload="metadata">
+      <source src="${streamUrl}" type="video/mp4">
+      Browser Anda tidak mendukung pemutaran video ini.
+    </video>
+  </div>
+  
+  <div class="buttons-container">
+    <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">
+      <i class="fa-solid fa-bolt"></i> Download HD Fast Speed (Server 1)
+    </a>
+    <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-red">
+      <i class="fa-solid fa-fire"></i> Nonton Tanpa Buffering (Server 2)
+    </a>
+  </div>
 </body>
 </html>`;
 

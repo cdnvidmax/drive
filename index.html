@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SliceDrive - Cloudflare Edition</title>
+  <title>SliceDrive - Dashboard</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -17,7 +17,6 @@
     
     .btn-purple { background-color: #6e40c9; color: #fff; border: none; }
     .btn-purple:hover { background-color: #5a32a3; color: #fff; }
-    .badge-active { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
     .btn-action { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; text-decoration: none; }
     .btn-action:hover { background-color: #30363d; color: #fff; }
   </style>
@@ -31,10 +30,9 @@
         <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 36px; height: 36px;">
           <i class="fa-solid fa-play fs-6"></i>
         </div>
-        SliceDrive <span class="badge bg-secondary ms-2 fs-6 opacity-75">Cloudflare Edition</span>
+        SliceDrive
       </a>
       <div class="d-flex align-items-center gap-2">
-        <span class="badge badge-active px-3 py-2 rounded-pill"><i class="fa-solid fa-circle text-success me-1 fs-6"></i> Cloudflare CDN Active</span>
         <a href="#uploadSection" class="btn btn-purple px-3 py-2"><i class="fa-solid fa-upload me-1"></i> Upload Video</a>
       </div>
     </div>
@@ -115,7 +113,7 @@
   </div>
 
   <footer class="text-center text-muted small py-4">
-    SliceDrive Indonesia © 2026. Powered by Cloudflare.
+    SliceDrive Indonesia © 2026.
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
@@ -182,7 +180,6 @@
       `).join('');
     }
 
-    // Fungsi Hapus Video
     async function deleteVideo(videoId, title) {
       if (confirm(`Apakah Anda yakin ingin menghapus video "${title}"?`)) {
         try {

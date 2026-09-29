@@ -143,12 +143,12 @@ export default {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>${title} - SliceDrive</title>
+  <title>${title} - StreamMax</title>
 
   <!-- META TAGS TANPA GAMBAR PREVIEW (SAFE FOR FB) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="Tonton video ${title} di SliceDrive.">
+  <meta property="og:description" content="Tonton video ${title} di StreamMax.">
   <meta property="og:url" content="${url.href}">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -169,7 +169,7 @@ export default {
 <body>
   <nav class="navbar navbar-dark mb-4">
     <div class="container">
-      <a class="navbar-brand fw-bold text-primary" href="/"><i class="fa-solid fa-play me-2"></i>SliceDrive</a>
+      <a class="navbar-brand fw-bold text-primary" href="/"><i class="fa-solid fa-play me-2"></i>StreamMax</a>
     </div>
   </nav>
 

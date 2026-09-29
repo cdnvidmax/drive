@@ -7,40 +7,43 @@ export default {
     // ==========================================
     const ADSTERRA_DIRECT_LINK = "https://nooseamazingbatch.com/xzs0px43?key=15b1073c21c922d059dc880ed8c33bca";
 
-    // 1. Endpoint API untuk Mengambil Daftar Semua Video
-    if (url.pathname === '/api/videos' && request.method === 'GET') {
-      try {
-        const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
-        const videos = [];
+// 1. Endpoint API untuk Mengambil Daftar Semua Video (Terurut Terbaru)
+if (url.pathname === '/api/videos' && request.method === 'GET') {
+  try {
+    const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
+    const videos = [];
 
-        for (const key of list.keys) {
-          const videoId = key.name.replace('video:', '');
-          const metadata = key.metadata || {};
-          videos.push({
-            id: videoId,
-            title: metadata.title || `Video ${videoId}`,
-            mimeType: metadata.mimeType || 'video/mp4',
-            size: metadata.size || 0,
-            uploadedAt: metadata.uploadedAt || new Date().toISOString(),
-            watchUrl: `${url.origin}/v/${videoId}`,
-            embedUrl: `${url.origin}/embed/${videoId}`,
-            streamUrl: `${url.origin}/stream/${videoId}`
-          });
-        }
-
-        return new Response(JSON.stringify({ success: true, videos }), {
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Access-Control-Allow-Origin': '*' 
-          }
-        });
-      } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { 
-          status: 500,
-          headers: { 'Access-Control-Allow-Origin': '*' }
-        });
-      }
+    for (const key of list.keys) {
+      const videoId = key.name.replace('video:', '');
+      const metadata = key.metadata || {};
+      videos.push({
+        id: videoId,
+        title: metadata.title || `Video ${videoId}`,
+        mimeType: metadata.mimeType || 'video/mp4',
+        size: metadata.size || 0,
+        uploadedAt: metadata.uploadedAt || new Date().toISOString(),
+        watchUrl: `${url.origin}/v/${videoId}`,
+        embedUrl: `${url.origin}/embed/${videoId}`,
+        streamUrl: `${url.origin}/stream/${videoId}`
+      });
     }
+
+    // Urutkan dari yang terbaru diunggah
+    videos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+
+    return new Response(JSON.stringify({ success: true, videos }), {
+      headers: { 
+        'Content-Type': 'application/json', 
+        'Access-Control-Allow-Origin': '*' 
+      }
+    });
+  } catch (err) {
+    return new Response(JSON.stringify({ error: err.message }), { 
+      status: 500,
+      headers: { 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+}
 
     // 2. Endpoint API untuk Mengunggah Video
     if (url.pathname === '/api/upload' && request.method === 'POST') {

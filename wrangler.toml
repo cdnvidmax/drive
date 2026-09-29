@@ -1,0 +1,8 @@
+name = "drive"
+main = "_worker.js"
+compatibility_date = "2024-09-01"
+
+# Mengizinkan penyajian file statis (index.html)
+[assets]
+directory = "."
+binding = "ASSETS"

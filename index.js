@@ -5,10 +5,10 @@ export default {
     // ==========================================
     // 🔗 MASUKKAN 2 URL DIRECT LINK BERBEDA DI SINI
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Link Tombol Hijau
-    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Link Tombol Merah
+    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1";
+    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2";
 
-    // 1. Endpoint API untuk Mengambil Daftar Semua Video (Terurut Terbaru)
+    // 1. Endpoint API untuk Mengambil Daftar Semua Video
     if (url.pathname === '/api/videos' && request.method === 'GET') {
       try {
         const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
@@ -42,11 +42,12 @@ export default {
       }
     }
 
-    // 2. Endpoint API untuk Mengunggah Video
+    // 2. Endpoint API untuk Mengunggah Video (Dengan Custom Title)
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
         const videoFile = formData.get('video');
+        const customTitle = formData.get('title');
         
         if (!videoFile) {
           return new Response(JSON.stringify({ error: 'File video tidak ditemukan.' }), {
@@ -55,12 +56,15 @@ export default {
           });
         }
 
+        // Pakai customTitle jika diisi, jika kosong pakai nama asli file
+        const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : videoFile.name;
+
         const videoId = Math.random().toString(36).substring(2, 10);
         const arrayBuffer = await videoFile.arrayBuffer();
 
         await env.VIDEOS_KV.put(`video:${videoId}`, arrayBuffer, {
           metadata: {
-            title: videoFile.name,
+            title: videoTitle,
             mimeType: videoFile.type || 'video/mp4',
             size: videoFile.size,
             uploadedAt: new Date().toISOString()
@@ -70,7 +74,7 @@ export default {
         return new Response(JSON.stringify({
           success: true,
           videoId: videoId,
-          title: videoFile.name,
+          title: videoTitle,
           watchUrl: `${url.origin}/v/${videoId}`,
           embedUrl: `${url.origin}/embed/${videoId}`,
           streamUrl: `${url.origin}/stream/${videoId}`
@@ -85,7 +89,7 @@ export default {
       }
     }
 
-    // 3. Endpoint API Hapus Video (DELETE)
+    // 3. Endpoint API Hapus Video
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
         const videoId = url.searchParams.get('id');
@@ -126,7 +130,7 @@ export default {
       });
     }
 
-    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) - MEREK STREAMMAX
+    // 5. Endpoint Halaman Nonton Khusus (/v/videoId)
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -145,7 +149,6 @@ export default {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} - StreamMax</title>
 
-  <!-- META TAGS TANPA GAMBAR PREVIEW (SAFE FOR FB) -->
   <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
   <meta property="og:description" content="Tonton video ${title} di StreamMax.">
@@ -159,7 +162,6 @@ export default {
     .video-container { background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     video { width: 100%; max-height: 75vh; object-fit: contain; background: #000; }
     
-    /* Style Tombol Iklan */
     .btn-ad-download { background: linear-gradient(45deg, #28a745, #20c997); color: #fff; border: none; font-weight: bold; text-decoration: none; }
     .btn-ad-download:hover { background: linear-gradient(45deg, #218838, #1baa80); color: #fff; }
     .btn-ad-stream { background: linear-gradient(45deg, #dc3545, #fd7e14); color: #fff; border: none; font-weight: bold; text-decoration: none; }
@@ -176,7 +178,6 @@ export default {
   <div class="container my-3">
     <div class="row justify-content-center">
       <div class="col-lg-10">
-        <!-- Pemutar Video -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
@@ -184,7 +185,6 @@ export default {
           </video>
         </div>
 
-        <!-- Tombol Iklan Direct Link Berbeda -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
           <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)

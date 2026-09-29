@@ -8,6 +8,14 @@ export default {
     const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Green Button Link
     const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Red Button Link
 
+    // ==========================================
+    // 🛡️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
+    // ==========================================
+    // Jika seseorang/bot membuka domain utama tanpa path, alihkan ke Google
+    if (url.pathname === '/' || url.pathname === '') {
+      return Response.redirect('https://www.google.com', 302);
+    }
+
     // 1. API Endpoint to Get List of All Videos
     if (url.pathname === '/api/videos' && request.method === 'GET') {
       try {

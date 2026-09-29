@@ -1,9 +1,13 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+
+    // ==========================================
+    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA/ADS ANDA DI SINI
+    // ==========================================
     const ADSTERRA_DIRECT_LINK = "https://nooseamazingbatch.com/xzs0px43?key=15b1073c21c922d059dc880ed8c33bca";
 
-    // 1. Endpoint API untuk Mengambil Daftar Semua Video
+    // 1. Endpoint API untuk Mengambil Daftar Semua Video (Terurut Terbaru)
     if (url.pathname === '/api/videos' && request.method === 'GET') {
       try {
         const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
@@ -24,13 +28,17 @@ export default {
           });
         }
 
+        // Urutkan dari yang terbaru
         videos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
         return new Response(JSON.stringify({ success: true, videos }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+        return new Response(JSON.stringify({ error: err.message }), { 
+          status: 500, 
+          headers: { 'Access-Control-Allow-Origin': '*' } 
+        });
       }
     }
 
@@ -70,7 +78,10 @@ export default {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+        return new Response(JSON.stringify({ error: err.message }), { 
+          status: 500, 
+          headers: { 'Access-Control-Allow-Origin': '*' } 
+        });
       }
     }
 
@@ -79,7 +90,10 @@ export default {
       try {
         const videoId = url.searchParams.get('id');
         if (!videoId) {
-          return new Response(JSON.stringify({ error: 'ID Video diperlukan.' }), { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } });
+          return new Response(JSON.stringify({ error: 'ID Video diperlukan.' }), { 
+            status: 400, 
+            headers: { 'Access-Control-Allow-Origin': '*' } 
+          });
         }
 
         await env.VIDEOS_KV.delete(`video:${videoId}`);
@@ -87,7 +101,10 @@ export default {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+        return new Response(JSON.stringify({ error: err.message }), { 
+          status: 500, 
+          headers: { 'Access-Control-Allow-Origin': '*' } 
+        });
       }
     }
 
@@ -109,7 +126,7 @@ export default {
       });
     }
 
-    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) DENGAN META THUMBNAIL FACEBOOK
+    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) - TANPA GAMBAR PREVIEW (SAFE)
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -125,9 +142,6 @@ export default {
       const uploadedAt = new Date(videoData.metadata.uploadedAt).toLocaleDateString('id-ID', {
         year: 'numeric', month: 'long', day: 'numeric'
       });
-      
-      // Default Thumbnail Gambar untuk Preview Facebook / Social Media
-      const defaultThumbnail = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop";
 
       const watchHtml = `<!DOCTYPE html>
 <html lang="id">
@@ -136,14 +150,11 @@ export default {
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} - SliceDrive</title>
 
-  <!-- META TAGS UNTUK PREVIEW FACEBOOK / SOCIAL MEDIA -->
-  <meta property="og:type" content="video.other">
+  <!-- META TAGS TANPA GAMBAR PREVIEW -->
+  <meta property="og:type" content="website">
   <meta property="og:title" content="${title}">
-  <meta property="og:description" content="Tonton video ${title} dengan kualitas HD bebas buffering di SliceDrive.">
-  <meta property="og:image" content="${defaultThumbnail}">
+  <meta property="og:description" content="Tonton video ${title} di SliceDrive.">
   <meta property="og:url" content="${url.href}">
-  <meta property="og:video" content="${streamUrl}">
-  <meta property="og:video:type" content="video/mp4">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -171,12 +182,14 @@ export default {
   <div class="container my-4">
     <div class="row justify-content-center">
       <div class="col-lg-10">
+        <!-- Pemutar Video -->
         <div class="video-container mb-3">
-          <video controls autoplay playsinline preload="metadata" poster="${defaultThumbnail}">
+          <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
           </video>
         </div>
 
+        <!-- Tombol Iklan Direct Link -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
           <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)
@@ -186,6 +199,7 @@ export default {
           </a>
         </div>
 
+        <!-- Detail Video & Aksi -->
         <div class="card card-custom p-4 mb-4">
           <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
             <div>

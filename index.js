@@ -1,49 +1,38 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
-
-    // ==========================================
-    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA/ADS ANDA DI SINI
-    // ==========================================
     const ADSTERRA_DIRECT_LINK = "https://nooseamazingbatch.com/xzs0px43?key=15b1073c21c922d059dc880ed8c33bca";
 
-// 1. Endpoint API untuk Mengambil Daftar Semua Video (Terurut Terbaru)
-if (url.pathname === '/api/videos' && request.method === 'GET') {
-  try {
-    const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
-    const videos = [];
+    // 1. Endpoint API untuk Mengambil Daftar Semua Video
+    if (url.pathname === '/api/videos' && request.method === 'GET') {
+      try {
+        const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
+        const videos = [];
 
-    for (const key of list.keys) {
-      const videoId = key.name.replace('video:', '');
-      const metadata = key.metadata || {};
-      videos.push({
-        id: videoId,
-        title: metadata.title || `Video ${videoId}`,
-        mimeType: metadata.mimeType || 'video/mp4',
-        size: metadata.size || 0,
-        uploadedAt: metadata.uploadedAt || new Date().toISOString(),
-        watchUrl: `${url.origin}/v/${videoId}`,
-        embedUrl: `${url.origin}/embed/${videoId}`,
-        streamUrl: `${url.origin}/stream/${videoId}`
-      });
-    }
+        for (const key of list.keys) {
+          const videoId = key.name.replace('video:', '');
+          const metadata = key.metadata || {};
+          videos.push({
+            id: videoId,
+            title: metadata.title || `Video ${videoId}`,
+            mimeType: metadata.mimeType || 'video/mp4',
+            size: metadata.size || 0,
+            uploadedAt: metadata.uploadedAt || new Date().toISOString(),
+            watchUrl: `${url.origin}/v/${videoId}`,
+            embedUrl: `${url.origin}/embed/${videoId}`,
+            streamUrl: `${url.origin}/stream/${videoId}`
+          });
+        }
 
-    // Urutkan dari yang terbaru diunggah
-    videos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
+        videos.sort((a, b) => new Date(b.uploadedAt) - new Date(a.uploadedAt));
 
-    return new Response(JSON.stringify({ success: true, videos }), {
-      headers: { 
-        'Content-Type': 'application/json', 
-        'Access-Control-Allow-Origin': '*' 
+        return new Response(JSON.stringify({ success: true, videos }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
       }
-    });
-  } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { 
-      status: 500,
-      headers: { 'Access-Control-Allow-Origin': '*' }
-    });
-  }
-}
+    }
 
     // 2. Endpoint API untuk Mengunggah Video
     if (url.pathname === '/api/upload' && request.method === 'POST') {
@@ -54,10 +43,7 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
         if (!videoFile) {
           return new Response(JSON.stringify({ error: 'File video tidak ditemukan.' }), {
             status: 400,
-            headers: { 
-              'Content-Type': 'application/json', 
-              'Access-Control-Allow-Origin': '*' 
-            }
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
         }
 
@@ -81,20 +67,31 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
           embedUrl: `${url.origin}/embed/${videoId}`,
           streamUrl: `${url.origin}/stream/${videoId}`
         }), {
-          headers: { 
-            'Content-Type': 'application/json', 
-            'Access-Control-Allow-Origin': '*' 
-          }
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
-        return new Response(JSON.stringify({ error: err.message }), { 
-          status: 500,
-          headers: { 'Access-Control-Allow-Origin': '*' }
-        });
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
       }
     }
 
-    // 3. Endpoint Raw Stream (Untuk pemutaran berkas video murni)
+    // 3. Endpoint API Hapus Video (DELETE)
+    if (url.pathname === '/api/delete' && request.method === 'DELETE') {
+      try {
+        const videoId = url.searchParams.get('id');
+        if (!videoId) {
+          return new Response(JSON.stringify({ error: 'ID Video diperlukan.' }), { status: 400, headers: { 'Access-Control-Allow-Origin': '*' } });
+        }
+
+        await env.VIDEOS_KV.delete(`video:${videoId}`);
+        return new Response(JSON.stringify({ success: true, message: 'Video berhasil dihapus.' }), {
+          headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { status: 500, headers: { 'Access-Control-Allow-Origin': '*' } });
+      }
+    }
+
+    // 4. Endpoint Raw Stream Video
     if (url.pathname.startsWith('/stream/')) {
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
@@ -112,7 +109,7 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
       });
     }
 
-    // 4. Endpoint Halaman Nonton Khusus (/v/videoId)
+    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) DENGAN META THUMBNAIL FACEBOOK
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -128,6 +125,9 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
       const uploadedAt = new Date(videoData.metadata.uploadedAt).toLocaleDateString('id-ID', {
         year: 'numeric', month: 'long', day: 'numeric'
       });
+      
+      // Default Thumbnail Gambar untuk Preview Facebook / Social Media
+      const defaultThumbnail = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=1200&h=630&fit=crop";
 
       const watchHtml = `<!DOCTYPE html>
 <html lang="id">
@@ -135,6 +135,16 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} - SliceDrive</title>
+
+  <!-- META TAGS UNTUK PREVIEW FACEBOOK / SOCIAL MEDIA -->
+  <meta property="og:type" content="video.other">
+  <meta property="og:title" content="${title}">
+  <meta property="og:description" content="Tonton video ${title} dengan kualitas HD bebas buffering di SliceDrive.">
+  <meta property="og:image" content="${defaultThumbnail}">
+  <meta property="og:url" content="${url.href}">
+  <meta property="og:video" content="${streamUrl}">
+  <meta property="og:video:type" content="video/mp4">
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
@@ -162,7 +172,7 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="video-container mb-3">
-          <video controls autoplay playsinline preload="metadata">
+          <video controls autoplay playsinline preload="metadata" poster="${defaultThumbnail}">
             <source src="${streamUrl}" type="video/mp4">
           </video>
         </div>
@@ -212,7 +222,7 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
       });
     }
 
-    // 5. Endpoint Pemutar Tersemat (/embed/videoId) - DENGAN TOMBOL IKLAN DI BAWAH PLAYER
+    // 6. Endpoint Pemutar Tersemat (/embed/videoId)
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
       const streamUrl = `${url.origin}/stream/${videoId}`;
@@ -229,14 +239,10 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
     body, html { width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif; }
     .video-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
     video { width: 100%; height: 100%; object-fit: contain; }
-    
-    /* Container Tombol di bawah Video */
     .buttons-container { display: flex; gap: 8px; padding: 10px; background: #0d1117; border-top: 1px solid #21262d; }
     .btn-ad { flex: 1; padding: 10px 12px; border-radius: 6px; font-weight: bold; font-size: 13px; text-decoration: none; text-align: center; display: flex; align-items: center; justify-content: center; gap: 6px; transition: 0.2s; }
-    
     .btn-green { background: #2ea44f; color: #fff; }
     .btn-green:hover { background: #2c974b; }
-    
     .btn-red { background: #da3633; color: #fff; }
     .btn-red:hover { background: #b62324; }
   </style>
@@ -245,7 +251,6 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
   <div class="video-wrapper">
     <video controls autoplay playsinline preload="metadata">
       <source src="${streamUrl}" type="video/mp4">
-      Browser Anda tidak mendukung pemutaran video ini.
     </video>
   </div>
   
@@ -265,7 +270,6 @@ if (url.pathname === '/api/videos' && request.method === 'GET') {
       });
     }
 
-    // 6. Teruskan semua request web biasa ke Frontend (index.html)
     return env.ASSETS.fetch(request);
   }
 };

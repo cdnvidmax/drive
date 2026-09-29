@@ -126,7 +126,7 @@ export default {
       });
     }
 
-    // 5. Endpoint Halaman Nonton Khusus (/v/videoId)
+    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) - MEREK STREAMMAX
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);

@@ -2,6 +2,11 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
+    // ==========================================
+    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA ANDA DI SINI
+    // ==========================================
+    const ADSTERRA_DIRECT_LINK = "https://nooseamazingbatch.com/xzs0px43?key=15b1073c21c922d059dc880ed8c33bca";
+
     // 1. Endpoint API untuk Mengambil Daftar Semua Video
     if (url.pathname === '/api/videos' && request.method === 'GET') {
       try {
@@ -136,8 +141,15 @@ export default {
     .video-container { background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
     video { width: 100%; max-height: 70vh; object-fit: contain; background: #000; }
     .card-custom { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; }
-    .btn-action { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; }
+    .btn-action { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; text-decoration: none; display: inline-flex; align-items: center; }
     .btn-action:hover { background-color: #30363d; color: #fff; }
+    
+    /* Style Tombol Iklan */
+    .btn-ad-download { background: linear-gradient(45deg, #28a745, #20c997); color: #fff; border: none; font-weight: bold; text-decoration: none; }
+    .btn-ad-download:hover { background: linear-gradient(45deg, #218838, #1baa80); color: #fff; }
+    
+    .btn-ad-stream { background: linear-gradient(45deg, #dc3545, #fd7e14); color: #fff; border: none; font-weight: bold; text-decoration: none; }
+    .btn-ad-stream:hover { background: linear-gradient(45deg, #c82333, #e06d12); color: #fff; }
   </style>
 </head>
 <body>
@@ -150,6 +162,7 @@ export default {
   <div class="container my-4">
     <div class="row justify-content-center">
       <div class="col-lg-10">
+        <!-- Pemutar Video -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
@@ -157,16 +170,33 @@ export default {
           </video>
         </div>
 
+        <!-- Tombol Promosi Iklan / Direct Link High CTR -->
+        <div class="d-grid gap-2 d-md-flex justify-content-md-between mb-3">
+          <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
+            <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)
+          </a>
+          <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-stream py-2 px-4 shadow-sm w-100">
+            <i class="fa-solid fa-fire me-2"></i>Nonton Tanpa Buffering (Server 2)
+          </a>
+        </div>
+
+        <!-- Detail Video & Fitur Salin -->
         <div class="card card-custom p-4 mb-4">
-          <h4 class="fw-bold text-white mb-2">${title}</h4>
-          <p class="text-muted small mb-3"><i class="fa-regular fa-clock me-1"></i> Diunggah pada ${uploadedAt}</p>
+          <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+            <div>
+              <h4 class="fw-bold text-white mb-1">${title}</h4>
+              <p class="text-muted small mb-0"><i class="fa-regular fa-clock me-1"></i> Diunggah pada ${uploadedAt}</p>
+            </div>
+            <a href="/" class="btn btn-sm btn-action"><i class="fa-solid fa-house me-1"></i> Dashboard</a>
+          </div>
           
-          <hr class="border-secondary opacity-25">
+          <hr class="border-secondary opacity-25 my-3">
 
           <div class="d-flex flex-wrap gap-2 mb-3">
+            <!-- Tombol Bagikan & Salin -->
             <button onclick="shareVideo()" class="btn btn-action"><i class="fa-solid fa-share-nodes me-2"></i>Bagikan</button>
             <button onclick="copyLink()" class="btn btn-action"><i class="fa-solid fa-link me-2"></i>Salin Tautan</button>
-            <button onclick="copyEmbed()" class="btn btn-action"><i class="fa-solid fa-code me-2"></i>Salin Kode Embed</button>
+            <button onclick="copyEmbed()" class="btn btn-action"><i class="fa-solid fa-code me-2"></i>Salin Embed</button>
           </div>
 
           <div class="mt-2">

@@ -3,9 +3,10 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔗 MASUKKAN URL DIRECT LINK ADSTERRA/ADS ANDA DI SINI
+    // 🔗 MASUKKAN 2 URL DIRECT LINK BERBEDA DI SINI
     // ==========================================
-    const ADSTERRA_DIRECT_LINK = "https://www.highratecpmgate.com/your-adsterra-key";
+    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Link Tombol Hijau
+    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Link Tombol Merah
 
     // 1. Endpoint API untuk Mengambil Daftar Semua Video (Terurut Terbaru)
     if (url.pathname === '/api/videos' && request.method === 'GET') {
@@ -125,7 +126,7 @@ export default {
       });
     }
 
-    // 5. Endpoint Halaman Nonton Khusus (/v/videoId) - BERSIH HANYA VIDEO & TOMBOL IKLAN
+    // 5. Endpoint Halaman Nonton Khusus (/v/videoId)
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -183,12 +184,12 @@ export default {
           </video>
         </div>
 
-        <!-- Tombol Iklan Direct Link -->
+        <!-- Tombol Iklan Direct Link Berbeda -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
-          <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
+          <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-bolt me-2"></i>Download HD Fast Speed (Server 1)
           </a>
-          <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-stream py-2 px-4 shadow-sm w-100">
+          <a href="${ADSTERRA_DIRECT_LINK_2}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-stream py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-fire me-2"></i>Nonton Tanpa Buffering (Server 2)
           </a>
         </div>
@@ -236,10 +237,10 @@ export default {
   </div>
   
   <div class="buttons-container">
-    <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">
+    <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">
       <i class="fa-solid fa-bolt"></i> Download HD Fast Speed (Server 1)
     </a>
-    <a href="${ADSTERRA_DIRECT_LINK}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-red">
+    <a href="${ADSTERRA_DIRECT_LINK_2}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-red">
       <i class="fa-solid fa-fire"></i> Nonton Tanpa Buffering (Server 2)
     </a>
   </div>

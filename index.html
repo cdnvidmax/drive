@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SliceDrive - Hosting & Streaming Video Gratis</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f3ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#1e1b4b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        .drag-active {
+            border-color: #6366f1 !important;
+            background-color: rgba(99, 102, 241, 0.1) !important;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-indigo-500 selection:text-white">
+
+    <nav class="bg-slate-900/90 border-b border-slate-800/80 sticky top-0 z-40 backdrop-blur-md px-6 py-3.5">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <a href="#" class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center text-white font-extrabold text-lg shadow-lg shadow-indigo-500/25">
+                    <i class="fa-solid fa-play text-sm"></i>
+                </div>
+                <div>
+                    <span class="text-xl font-black text-white tracking-tight">Slice<span class="text-indigo-400">Drive</span></span>
+                    <span class="hidden sm:inline-block text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded-md font-bold ml-2 border border-indigo-500/30">Cloudflare Edition</span>
+                </div>
+            </a>
+
+            <div class="flex items-center gap-3">
+                <span class="hidden md:flex text-xs bg-emerald-500/10 text-emerald-400 px-3 py-1.5 rounded-full font-bold border border-emerald-500/20 items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Cloudflare CDN Active
+                </span>
+                <button onclick="scrollToUpload()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-4 py-2 rounded-xl transition shadow-lg shadow-indigo-600/20 flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Upload Video
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="max-w-6xl mx-auto p-4 sm:p-6 space-y-8 w-full flex-1">
+
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center text-xl font-bold border border-indigo-500/20">
+                    <i class="fa-solid fa-film"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Total Video</p>
+                    <h3 id="statTotalVideos" class="text-xl font-bold text-white">2</h3>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-violet-500/10 text-violet-400 flex items-center justify-center text-xl font-bold border border-violet-500/20">
+                    <i class="fa-solid fa-eye"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Total Dilihat / Views</p>
+                    <h3 id="statTotalViews" class="text-xl font-bold text-white">5,310</h3>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl font-bold border border-emerald-500/20">
+                    <i class="fa-solid fa-bolt"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Kecepatan Streaming</p>
+                    <h3 class="text-xl font-bold text-white">Cloudflare CDN</h3>
+                </div>
+            </div>
+
+            <div class="bg-slate-900/70 border border-slate-800/80 p-5 rounded-2xl flex items-center gap-4">
+                <div class="w-12 h-12 rounded-xl bg-orange-500/10 text-orange-400 flex items-center justify-center text-xl font-bold border border-orange-500/20">
+                    <i class="fa-solid fa-cloud"></i>
+                </div>
+                <div>
+                    <p class="text-xs text-slate-400 font-medium">Penyimpanan</p>
+                    <h3 class="text-xl font-bold text-white">Cloudflare R2</h3>
+                </div>
+            </div>
+        </div>
+
+        <div id="uploadBox" class="bg-slate-900/80 border border-slate-800 p-6 rounded-2xl shadow-xl space-y-5">
+            <div class="flex items-center justify-between border-b border-slate-800/80 pb-4">
+                <div>
+                    <h2 class="text-lg font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-cloud-arrow-up text-indigo-400"></i> Unggah Video Baru
+                    </h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Unggah berkas video Anda dan dapatkan tautan streaming serta kode iframe embed instan.</p>
+                </div>
+                <span class="text-xs bg-slate-800 text-slate-300 px-3 py-1 rounded-lg border border-slate-700 font-mono">Bebas Iklan</span>
+            </div>
+
+            <form id="uploadForm" class="space-y-4">
+                <div id="dropZone" class="border-2 border-dashed border-slate-700 hover:border-indigo-500/80 bg-slate-950/60 transition-all rounded-2xl p-8 text-center cursor-pointer relative">
+                    <input type="file" id="videoFileInput" accept="video/*" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    <div class="space-y-2 pointer-events-none">
+                        <div class="w-14 h-14 mx-auto rounded-full bg-indigo-500/10 flex items-center justify-center text-indigo-400 text-2xl">
+                            <i class="fa-solid fa-file-video"></i>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-200">Seret & lepas berkas video di sini, atau <span class="text-indigo-400 underline">klik untuk memilih</span></p>
+                        <p class="text-xs text-slate-500">Mendukung MP4, WebM, MKV, MOV (Format Standar Web)</p>
+                        <div id="selectedFileName" class="hidden text-xs bg-indigo-500/20 text-indigo-300 font-mono py-1.5 px-3 rounded-lg border border-indigo-500/30 inline-block mt-2"></div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Judul Video</label>
+                        <input type="text" id="titleInput" required placeholder="Masukkan judul video..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Kategori Video</label>
+                        <select id="categoryInput" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="Teknologi">Teknologi</option>
+                            <option value="Edukasi">Edukasi / Tutorial</option>
+                            <option value="Gaming">Gaming</option>
+                            <option value="Hiburan">Hiburan</option>
+                            <option value="Umum">Umum</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Deskripsi Singkat</label>
+                    <input type="text" id="descInput" placeholder="Penjelasan singkat mengenai isi video..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+
+                <div id="uploadStatus" class="hidden space-y-2">
+                    <div class="flex justify-between text-xs text-indigo-400 font-semibold">
+                        <span><i class="fa-solid fa-spinner fa-spin mr-1.5"></i> Mengunggah video...</span>
+                        <span id="uploadPercent">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-950 rounded-full h-2 overflow-hidden border border-slate-800">
+                        <div id="uploadProgressBar" class="bg-indigo-600 h-full w-0 transition-all duration-200"></div>
+                    </div>
+                </div>
+
+                <button type="submit" id="btnUpload" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-3 rounded-xl transition flex items-center justify-center gap-2 cursor-pointer w-full sm:w-auto">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> Mulai Proses Upload
+                </button>
+            </form>
+        </div>
+
+        <div class="bg-slate-900/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl space-y-4 p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800/80 pb-4">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-list text-indigo-400"></i> Daftar Video Ter-host
+                    </h3>
+                    <p class="text-xs text-slate-400">Kelola dan ambil tautan pemutar untuk semua video Anda.</p>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2">
+                    <input type="text" id="searchInput" oninput="renderVideoList()" placeholder="Cari judul video..." class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500 w-44">
+                    <select id="categoryFilter" onchange="renderVideoList()" class="bg-slate-950 border border-slate-800 rounded-xl px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-indigo-500">
+                        <option value="Semua">Semua Kategori</option>
+                        <option value="Teknologi">Teknologi</option>
+                        <option value="Edukasi">Edukasi</option>
+                        <option value="Gaming">Gaming</option>
+                        <option value="Hiburan">Hiburan</option>
+                        <option value="Umum">Umum</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs text-slate-300">
+                    <thead class="bg-slate-950 text-slate-400 uppercase tracking-wider border-b border-slate-800">
+                        <tr>
+                            <th class="p-3.5">Judul Video</th>
+                            <th class="p-3.5">Kategori</th>
+                            <th class="p-3.5">Ukuran</th>
+                            <th class="p-3.5">Views</th>
+                            <th class="p-3.5">Tanggal</th>
+                            <th class="p-3.5 text-right">Aksi & Tautan</th>
+                        </tr>
+                    </thead>
+                    <tbody id="videoTableBody" class="divide-y divide-slate-800/60">
+                        <!-- Populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <div id="playerModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md hidden items-center justify-center p-4 z-50">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-3xl w-full overflow-hidden shadow-2xl space-y-4 p-5 relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <h3 id="modalVideoTitle" class="text-sm font-bold text-white truncate max-w-md">Pemutar Video</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white text-base cursor-pointer">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="aspect-video bg-black rounded-xl overflow-hidden border border-slate-800 relative">
+                <video id="modalVideoPlayer" controls class="w-full h-full object-contain"></video>
+            </div>
+            <div class="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-950 p-3 rounded-xl border border-slate-800 text-xs">
+                <div class="w-full sm:w-auto truncate">
+                    <span class="text-slate-400">Kode Embed iFrame:</span>
+                </div>
+                <button id="btnCopyEmbedModal" onclick="copyModalEmbed()" class="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-3 py-1.5 rounded-lg transition shrink-0 cursor-pointer">
+                    <i class="fa-regular fa-copy mr-1"></i> Salin Kode Embed
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="fixed bottom-5 right-5 bg-indigo-600 text-white text-xs font-bold px-4 py-3 rounded-xl shadow-2xl transition-all opacity-0 translate-y-5 pointer-events-none flex items-center gap-2 z-50">
+        <i class="fa-solid fa-circle-check text-sm"></i> <span id="toastMsg">Notifikasi</span>
+    </div>
+
+    <footer class="border-t border-slate-800/80 bg-slate-900/50 py-6 text-center text-xs text-slate-500 mt-12">
+        <p>SliceDrive Indonesia &copy; 2026. Powered by <span class="text-indigo-400 font-semibold">GitHub + Cloudflare Pages</span>.</p>
+    </footer>
+
+    <script>
+        let sampleVideos = [
+            {
+                id: 'sd-demo-1',
+                title: 'Demo Trailer Stream - SliceDrive Cloudflare',
+                category: 'Teknologi',
+                size: '18.5 MB',
+                views: 3420,
+                uploadedAt: '2026-03-25',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4'
+            },
+            {
+                id: 'sd-demo-2',
+                title: 'Panduan Integrasi Cloudflare R2 & Pages',
+                category: 'Edukasi',
+                size: '12.1 MB',
+                views: 1890,
+                uploadedAt: '2026-03-28',
+                url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4'
+            }
+        ];
+
+        let activeVideoUrlForModal = '';
+
+        function scrollToUpload() {
+            document.getElementById('uploadBox').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-5');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-5');
+                toast.classList.remove('opacity-100', 'translate-y-0');
+            }, 3000);
+        }
+
+        function escapeHtml(str) {
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str || ''));
+            return div.innerHTML;
+        }
+
+        function renderVideoList() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const category = document.getElementById('categoryFilter').value;
+            const tbody = document.getElementById('videoTableBody');
+            tbody.innerHTML = '';
+
+            let filtered = sampleVideos.filter(v => {
+                const matchCategory = (category === 'Semua' || v.category === category);
+                const matchSearch = v.title.toLowerCase().includes(search);
+                return matchCategory && matchSearch;
+            });
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-medium">Tidak ada video ditemukan. Silakan unggah video baru!</td></tr>';
+                return;
+            }
+
+            filtered.forEach(v => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/40 transition";
+                tr.innerHTML = `
+                    <td class="p-3.5 font-bold text-white max-w-xs truncate">
+                        <span class="cursor-pointer hover:text-indigo-400 transition" onclick="openPlayerModal('${v.url}', '${escapeHtml(v.title)}')">
+                            <i class="fa-solid fa-circle-play text-indigo-400 mr-2"></i>${escapeHtml(v.title)}
+                        </span>
+                    </td>
+                    <td class="p-3.5"><span class="bg-slate-950 text-slate-400 px-2 py-0.5 rounded border border-slate-800 text-[11px]">${escapeHtml(v.category)}</span></td>
+                    <td class="p-3.5 font-mono text-slate-400 text-[11px]">${escapeHtml(v.size)}</td>
+                    <td class="p-3.5 font-mono text-slate-300 text-[11px]">${v.views}</td>
+                    <td class="p-3.5 text-slate-400 text-[11px]">${escapeHtml(v.uploadedAt)}</td>
+                    <td class="p-3.5 text-right space-x-1.5">
+                        <button onclick="openPlayerModal('${v.url}', '${escapeHtml(v.title)}')" class="bg-indigo-600/20 hover:bg-indigo-600 text-indigo-400 hover:text-white px-2.5 py-1.5 rounded-lg transition font-semibold inline-flex items-center gap-1 text-[11px] cursor-pointer">
+                            <i class="fa-solid fa-play"></i> Putar
+                        </button>
+                        <button onclick="copyEmbed('${v.url}')" class="bg-slate-800 hover:bg-slate-700 text-slate-300 px-2.5 py-1.5 rounded-lg transition inline-flex items-center gap-1 text-[11px] cursor-pointer">
+                            <i class="fa-solid fa-code"></i> Embed
+                        </button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        const fileInput = document.getElementById('videoFileInput');
+        const dropZone = document.getElementById('dropZone');
+        const fileNameDisplay = document.getElementById('selectedFileName');
+
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                fileNameDisplay.innerText = "Terpilih: " + file.name + " (" + (file.size / (1024 * 1024)).toFixed(2) + " MB)";
+                fileNameDisplay.classList.remove('hidden');
+                
+                const titleInput = document.getElementById('titleInput');
+                if (!titleInput.value) {
+                    titleInput.value = file.name.replace(/\.[^/.]+$/, "");
+                }
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('drag-active');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('drag-active');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('drag-active');
+            if (e.dataTransfer.files.length > 0) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const status = document.getElementById('uploadStatus');
+            const progressBar = document.getElementById('uploadProgressBar');
+            const percentText = document.getElementById('uploadPercent');
+            const btn = document.getElementById('btnUpload');
+
+            status.classList.remove('hidden');
+            btn.disabled = true;
+
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                percentText.innerText = progress + '%';
+
+                if (progress >= 100) {
+                    clearInterval(interval);
+                    status.classList.add('hidden');
+                    btn.disabled = false;
+                    progressBar.style.width = '0%';
+
+                    const file = fileInput.files[0];
+                    const blobUrl = URL.createObjectURL(file);
+
+                    const newVideo = {
+                        id: 'sd-' + Math.random().toString(36).substring(2, 9),
+                        title: document.getElementById('titleInput').value,
+                        category: document.getElementById('categoryInput').value,
+                        size: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+                        views: 1,
+                        uploadedAt: new Date().toISOString().split('T')[0],
+                        url: blobUrl
+                    };
+
+                    sampleVideos.unshift(newVideo);
+                    renderVideoList();
+
+                    document.getElementById('uploadForm').reset();
+                    fileNameDisplay.classList.add('hidden');
+                    showToast("Video berhasil diunggah!");
+                }
+            }, 150);
+        });
+
+        function copyEmbed(url) {
+            const embed = `<iframe src="${url}" width="640" height="360" frameborder="0" allowfullscreen></iframe>`;
+            navigator.clipboard.writeText(embed);
+            showToast("Kode Embed iFrame berhasil disalin!");
+        }
+
+        function openPlayerModal(url, title) {
+            activeVideoUrlForModal = url;
+            document.getElementById('modalVideoTitle').innerText = title;
+            const player = document.getElementById('modalVideoPlayer');
+            player.src = url;
+            document.getElementById('playerModal').classList.remove('hidden');
+            document.getElementById('playerModal').classList.add('flex');
+            player.play().catch(() => {});
+        }
+
+        function copyModalEmbed() {
+            copyEmbed(activeVideoUrlForModal);
+        }
+
+        function closeModal() {
+            const player = document.getElementById('modalVideoPlayer');
+            player.pause();
+            player.src = '';
+            document.getElementById('playerModal').classList.add('hidden');
+            document.getElementById('playerModal').classList.remove('flex');
+        }
+
+        window.onload = renderVideoList;
+    </script>
+</body>
+</html>

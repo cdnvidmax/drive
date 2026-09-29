@@ -2,7 +2,10 @@ name = "drive"
 main = "_worker.js"
 compatibility_date = "2024-09-01"
 
-# Mengizinkan penyajian file statis (index.html)
 [assets]
 directory = "."
 binding = "ASSETS"
+
+[[kv_namespaces]]
+binding = "VIDEOS_KV"
+id = "295febb95c29476ebbb73b9cb1a668e6"

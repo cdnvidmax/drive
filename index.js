@@ -2,7 +2,42 @@ export default {
   async fetch(request, env) {
     const url = new URL(request.url);
 
-    // 1. Endpoint API untuk Mengunggah Video
+    // 1. Endpoint API untuk Mengambil Daftar Semua Video
+    if (url.pathname === '/api/videos' && request.method === 'GET') {
+      try {
+        const list = await env.VIDEOS_KV.list({ prefix: 'video:' });
+        const videos = [];
+
+        for (const key of list.keys) {
+          const videoId = key.name.replace('video:', '');
+          const metadata = key.metadata || {};
+          videos.push({
+            id: videoId,
+            title: metadata.title || `Video ${videoId}`,
+            mimeType: metadata.mimeType || 'video/mp4',
+            size: metadata.size || 0,
+            uploadedAt: metadata.uploadedAt || new Date().toISOString(),
+            watchUrl: `${url.origin}/v/${videoId}`,
+            embedUrl: `${url.origin}/embed/${videoId}`,
+            streamUrl: `${url.origin}/stream/${videoId}`
+          });
+        }
+
+        return new Response(JSON.stringify({ success: true, videos }), {
+          headers: { 
+            'Content-Type': 'application/json', 
+            'Access-Control-Allow-Origin': '*' 
+          }
+        });
+      } catch (err) {
+        return new Response(JSON.stringify({ error: err.message }), { 
+          status: 500,
+          headers: { 'Access-Control-Allow-Origin': '*' }
+        });
+      }
+    }
+
+    // 2. Endpoint API untuk Mengunggah Video
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
@@ -52,7 +87,7 @@ export default {
       }
     }
 
-    // 2. Endpoint Streaming Video
+    // 3. Endpoint Streaming Video
     if (url.pathname.startsWith('/stream/')) {
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
@@ -70,7 +105,7 @@ export default {
       });
     }
 
-    // 3. Endpoint Halaman Nonton Khusus (/v/videoId)
+    // 4. Endpoint Halaman Nonton Khusus (/v/videoId)
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -115,7 +150,6 @@ export default {
   <div class="container my-4">
     <div class="row justify-content-center">
       <div class="col-lg-10">
-        <!-- Player -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata">
             <source src="${streamUrl}" type="video/mp4">
@@ -123,21 +157,18 @@ export default {
           </video>
         </div>
 
-        <!-- Detail & Fitur -->
         <div class="card card-custom p-4 mb-4">
           <h4 class="fw-bold text-white mb-2">${title}</h4>
           <p class="text-muted small mb-3"><i class="fa-regular fa-clock me-1"></i> Diunggah pada ${uploadedAt}</p>
           
           <hr class="border-secondary opacity-25">
 
-          <!-- Tombol Aksi -->
           <div class="d-flex flex-wrap gap-2 mb-3">
             <button onclick="shareVideo()" class="btn btn-action"><i class="fa-solid fa-share-nodes me-2"></i>Bagikan</button>
             <button onclick="copyLink()" class="btn btn-action"><i class="fa-solid fa-link me-2"></i>Salin Tautan</button>
             <button onclick="copyEmbed()" class="btn btn-action"><i class="fa-solid fa-code me-2"></i>Salin Kode Embed</button>
           </div>
 
-          <!-- Input Embed -->
           <div class="mt-2">
             <label class="form-label small text-muted">Kode Embed iFrame:</label>
             <input type="text" class="form-control bg-dark text-light border-secondary" value="${embedCode}" readonly id="embedInput">
@@ -179,7 +210,7 @@ export default {
       });
     }
 
-    // 4. Endpoint Pemutar Tersemat (iFrame Embed Page)
+    // 5. Endpoint Pemutar Tersemat (iFrame Embed Page)
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
       const streamUrl = `${url.origin}/stream/${videoId}`;
@@ -209,7 +240,7 @@ export default {
       });
     }
 
-    // 5. Teruskan semua request web biasa ke Frontend (index.html)
+    // 6. Teruskan semua request web biasa ke Frontend (index.html)
     return env.ASSETS.fetch(request);
   }
 };

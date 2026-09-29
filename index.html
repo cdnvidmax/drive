@@ -10,12 +10,17 @@
     body { background-color: #0b0e14; color: #c9d1d9; font-family: system-ui, -apple-system, sans-serif; }
     .navbar { background-color: #161b22; border-bottom: 1px solid #21262d; }
     .card-custom { background-color: #161b22; border: 1px solid #30363d; border-radius: 12px; }
-    .table-dark-custom { background-color: #161b22; color: #c9d1d9; }
-    .table-dark-custom th { background-color: #0d1117; color: #8b949e; border-bottom: 1px solid #30363d; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
-    .table-dark-custom td { border-bottom: 1px solid #21262d; vertical-align: middle; }
+    
+    /* Styling Tabel Gelap (Dark Table) */
+    .table-dark-custom { background-color: #161b22; color: #c9d1d9; border-color: #30363d; }
+    .table-dark-custom th { background-color: #0d1117 !important; color: #8b949e !important; border-bottom: 1px solid #30363d !important; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+    .table-dark-custom td { background-color: #161b22 !important; color: #e6edf3 !important; border-bottom: 1px solid #21262d !important; vertical-align: middle; }
+    
     .btn-purple { background-color: #6e40c9; color: #fff; border: none; }
     .btn-purple:hover { background-color: #5a32a3; color: #fff; }
     .badge-active { background-color: rgba(46, 160, 67, 0.15); color: #3fb950; border: 1px solid rgba(46, 160, 67, 0.4); }
+    .btn-action { background-color: #21262d; color: #c9d1d9; border: 1px solid #363b42; text-decoration: none; }
+    .btn-action:hover { background-color: #30363d; color: #fff; }
   </style>
 </head>
 <body>
@@ -118,7 +123,6 @@
   <script>
     let allVideos = [];
 
-    // Format Bytes ke MB/GB
     function formatBytes(bytes) {
       if (bytes === 0) return '0 Bytes';
       const k = 1024;
@@ -127,14 +131,13 @@
       return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
-    // Load Daftar Video dari Cloudflare KV
     async function loadVideos() {
       const tbody = document.getElementById('videoTableBody');
       try {
         const res = await fetch('/api/videos');
         const data = await res.json();
         
-        if (data.success && data.videos) {
+        if (data.success && data.videos && data.videos.length > 0) {
           allVideos = data.videos;
           renderTable(allVideos);
         } else {
@@ -145,7 +148,6 @@
       }
     }
 
-    // Render Tabel
     function renderTable(videos) {
       const tbody = document.getElementById('videoTableBody');
       if (videos.length === 0) {
@@ -164,21 +166,20 @@
           <td class="text-muted small">${formatBytes(v.size)}</td>
           <td class="text-muted small">${new Date(v.uploadedAt).toISOString().split('T')[0]}</td>
           <td class="text-end">
-            <button onclick="playVideo('${v.embedUrl}', '${v.title}')" class="btn btn-sm btn-action btn-outline-light me-1">
-              <i class="fa-solid fa-play me-1"></i>Putar
+            <button onclick="playVideo('${v.embedUrl}', '${v.title}')" class="btn btn-sm btn-action me-1">
+              <i class="fa-solid fa-play me-1 text-primary"></i>Putar
             </button>
-            <a href="${v.watchUrl}" target="_blank" class="btn btn-sm btn-action btn-outline-info me-1">
-              <i class="fa-solid fa-arrow-up-right-from-square me-1"></i>Halaman
+            <a href="${v.watchUrl}" target="_blank" class="btn btn-sm btn-action me-1">
+              <i class="fa-solid fa-arrow-up-right-from-square me-1 text-info"></i>Halaman
             </a>
-            <button onclick="copyText('<iframe src=\\'${v.embedUrl}\\' width=\\'100%\\' height=\\'100%\\' frameborder=\\'0\\' allowfullscreen></iframe>')" class="btn btn-sm btn-action btn-outline-secondary">
-              <i class="fa-solid fa-code me-1"></i>Embed
+            <button onclick="copyText('<iframe src=\\'${v.embedUrl}\\' width=\\'100%\\' height=\\'100%\\' frameborder=\\'0\\' allowfullscreen></iframe>')" class="btn btn-sm btn-action">
+              <i class="fa-solid fa-code me-1 text-secondary"></i>Embed
             </button>
           </td>
         </tr>
       `).join('');
     }
 
-    // Handle Upload Video
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const fileInput = document.getElementById('videoInput');
@@ -215,14 +216,12 @@
       }
     });
 
-    // Pencarian Video
     document.getElementById('searchInput').addEventListener('input', (e) => {
       const keyword = e.target.value.toLowerCase();
       const filtered = allVideos.filter(v => v.title.toLowerCase().includes(keyword));
       renderTable(filtered);
     });
 
-    // Modal Player
     function playVideo(embedUrl, title) {
       document.getElementById('modalVideoTitle').innerText = title;
       document.getElementById('modalIframe').src = embedUrl;
@@ -243,7 +242,6 @@
       alert('Kode Embed berhasil disalin!');
     }
 
-    // Jalankan pertama kali
     document.addEventListener('DOMContentLoaded', loadVideos);
   </script>
 </body>

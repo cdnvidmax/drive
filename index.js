@@ -3,20 +3,19 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔑 PASSWORD RAHASIA ADMIN (SAMA DENGAN INDEX.HTML)
+    // 🔑 PASSWORD RAHASIA ADMIN
     // ==========================================
     const ADMIN_SECRET_KEY = "rahasia123"; 
 
     // ==========================================
-    // 🔗 DIRECT LINKS UNTUK IKLAN (ADSTERRA / MONETAG)
+    // 🔗 DIRECT LINKS UNTUK IKLAN
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Link Tombol Hijau
-    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Link Tombol Merah
+    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; 
+    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; 
 
     // ==========================================
     // 🛡️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
     // ==========================================
-    // Mengalihkan pengunjung/bot di domain utama ke Google
     if (url.pathname === '/' || url.pathname === '') {
       return Response.redirect('https://www.google.com', 302);
     }
@@ -61,7 +60,6 @@ export default {
         const formData = await request.formData();
         const authKey = formData.get('secret_key');
 
-        // Check Password Admin
         if (authKey !== ADMIN_SECRET_KEY) {
           return new Response(JSON.stringify({ error: 'Access Denied: Incorrect Admin Password!' }), {
             status: 403,
@@ -115,7 +113,6 @@ export default {
       try {
         const authKey = request.headers.get('x-secret-key');
 
-        // Check Password Admin
         if (authKey !== ADMIN_SECRET_KEY) {
           return new Response(JSON.stringify({ error: 'Access Denied: Incorrect Admin Password!' }), {
             status: 403,
@@ -188,9 +185,9 @@ export default {
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    body { background-color: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, sans-serif; }
+    body { background-color: #0d1117; color: #c9d1d9; font-family: system-ui, -apple-system, sans-serif; user-select: none; }
     .navbar { background-color: #161b22; border-bottom: 1px solid #30363d; }
-    .video-container { background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+    .video-container { background: #000; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); position: relative; }
     video { width: 100%; max-height: 75vh; object-fit: contain; background: #000; }
     
     .btn-ad-download { background: linear-gradient(45deg, #28a745, #20c997); color: #fff; border: none; font-weight: bold; text-decoration: none; }
@@ -198,9 +195,21 @@ export default {
     .btn-ad-stream { background: linear-gradient(45deg, #dc3545, #fd7e14); color: #fff; border: none; font-weight: bold; text-decoration: none; }
     .btn-ad-stream:hover { background: linear-gradient(45deg, #c82333, #e06d12); color: #fff; }
   </style>
+
+  <script>
+    // Mencegah Klik Kanan
+    document.addEventListener('contextmenu', event => event.preventDefault());
+
+    // Mencegah Shortcut Keyboard (Ctrl+U, F12, dll)
+    document.onkeydown = function (e) {
+      if (e.keyCode === 123) return false; // F12
+      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false; // Ctrl+Shift+I/J/C
+      if (e.ctrlKey && e.keyCode === 85) return false; // Ctrl+U
+      if (e.ctrlKey && e.keyCode === 83) return false; // Ctrl+S
+    };
+  </script>
 </head>
-<body>
-  <!-- NAVBAR TANPA LINK (LOGO HANYA DISPLAY) -->
+<body oncontextmenu="return false;">
   <nav class="navbar navbar-dark mb-4">
     <div class="container">
       <span class="navbar-brand fw-bold text-primary mb-0 h1" style="cursor: default;"><i class="fa-solid fa-play me-2"></i>StreamMax</span>
@@ -211,13 +220,12 @@ export default {
     <div class="row justify-content-center">
       <div class="col-lg-10">
         <div class="video-container mb-3">
-          <video controls autoplay playsinline preload="metadata">
+          <video controls autoplay playsinline preload="metadata" controlsList="nodownload" disablePictureInPicture oncontextmenu="return false;">
             <source src="${streamUrl}" type="video/mp4">
             Your browser does not support video playback.
           </video>
         </div>
 
-        <!-- HIGH CTR BUTTONS -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
           <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-circle-play me-2"></i>WATCH FULL LENGTH VIDEO
@@ -250,7 +258,7 @@ export default {
   <title>Embed Video</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
+    * { margin: 0; padding: 0; box-sizing: border-box; user-select: none; }
     body, html { width: 100%; height: 100%; background: #000; overflow: hidden; display: flex; flex-direction: column; font-family: system-ui, -apple-system, sans-serif; }
     .video-wrapper { flex: 1; display: flex; align-items: center; justify-content: center; background: #000; overflow: hidden; }
     video { width: 100%; height: 100%; object-fit: contain; }
@@ -261,10 +269,20 @@ export default {
     .btn-red { background: #da3633; color: #fff; }
     .btn-red:hover { background: #b62324; }
   </style>
+
+  <script>
+    document.addEventListener('contextmenu', event => event.preventDefault());
+    document.onkeydown = function (e) {
+      if (e.keyCode === 123) return false;
+      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false;
+      if (e.ctrlKey && e.keyCode === 85) return false;
+      if (e.ctrlKey && e.keyCode === 83) return false;
+    };
+  </script>
 </head>
-<body>
+<body oncontextmenu="return false;">
   <div class="video-wrapper">
-    <video controls autoplay playsinline preload="metadata">
+    <video controls autoplay playsinline preload="metadata" controlsList="nodownload" disablePictureInPicture oncontextmenu="return false;">
       <source src="${streamUrl}" type="video/mp4">
     </video>
   </div>

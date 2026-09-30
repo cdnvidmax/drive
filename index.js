@@ -3,15 +3,15 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔗 DIRECT LINKS FOR ADS
+    // 🔑 PASSWORD RAHASIA ADMIN (UBAH SESUAI KEINGINAN)
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; // Green Button Link
-    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; // Red Button Link
+    const ADMIN_SECRET_KEY = "rahasia123"; 
 
-    // ==========================================
-    // 🛡️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
-    // ==========================================
-    // Jika seseorang/bot membuka domain utama tanpa path, alihkan ke Google
+    // 🔗 DIRECT LINKS FOR ADS
+    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; 
+    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; 
+
+    // 🛡️️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
     if (url.pathname === '/' || url.pathname === '') {
       return Response.redirect('https://www.google.com', 302);
     }
@@ -50,10 +50,20 @@ export default {
       }
     }
 
-    // 2. API Endpoint to Upload Video (With Custom Title)
+    // 2. API Endpoint to Upload Video (WITH PASSWORD CHECK)
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
+        const authKey = formData.get('secret_key');
+
+        // VERIFIKASI PASSWORD
+        if (authKey !== ADMIN_SECRET_KEY) {
+          return new Response(JSON.stringify({ error: 'Akses Ditolak: Password Admin Salah!' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
         const videoFile = formData.get('video');
         const customTitle = formData.get('title');
         
@@ -95,9 +105,19 @@ export default {
       }
     }
 
-    // 3. API Endpoint to Delete Video
+    // 3. API Endpoint to Delete Video (WITH PASSWORD CHECK)
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
+        const authKey = request.headers.get('x-secret-key');
+
+        // VERIFIKASI PASSWORD
+        if (authKey !== ADMIN_SECRET_KEY) {
+          return new Response(JSON.stringify({ error: 'Akses Ditolak: Password Admin Salah!' }), {
+            status: 403,
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
         const videoId = url.searchParams.get('id');
         if (!videoId) {
           return new Response(JSON.stringify({ error: 'ID Video diperlukan.' }), { 
@@ -191,7 +211,6 @@ export default {
           </video>
         </div>
 
-        <!-- HIGH CTR BUTTONS -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
           <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-circle-play me-2"></i>WATCH FULL LENGTH VIDEO

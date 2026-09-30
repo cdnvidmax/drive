@@ -140,8 +140,19 @@ export default {
       }
     }
 
-    // 4. Raw Stream Video Endpoint
+    // 4. Raw Stream Video Endpoint (DENGAN PROTEKSI AKSES LANGSUNG)
     if (url.pathname.startsWith('/stream/')) {
+      const referer = request.headers.get('referer') || '';
+      const secFetchMode = request.headers.get('sec-fetch-mode') || '';
+
+      // Blokir jika dibuka langsung di tab browser tanpa melalui halaman /v/
+      if (secFetchMode === 'navigate' && !referer.includes(url.origin)) {
+        return new Response('Akses Langsung Ditolak! Silakan tonton melalui halaman resmi.', { 
+          status: 403,
+          headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+        });
+      }
+
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
 
@@ -197,15 +208,12 @@ export default {
   </style>
 
   <script>
-    // Mencegah Klik Kanan
     document.addEventListener('contextmenu', event => event.preventDefault());
-
-    // Mencegah Shortcut Keyboard (Ctrl+U, F12, dll)
     document.onkeydown = function (e) {
-      if (e.keyCode === 123) return false; // F12
-      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false; // Ctrl+Shift+I/J/C
-      if (e.ctrlKey && e.keyCode === 85) return false; // Ctrl+U
-      if (e.ctrlKey && e.keyCode === 83) return false; // Ctrl+S
+      if (e.keyCode === 123) return false;
+      if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) return false;
+      if (e.ctrlKey && e.keyCode === 85) return false;
+      if (e.ctrlKey && e.keyCode === 83) return false;
     };
   </script>
 </head>

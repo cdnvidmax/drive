@@ -45,11 +45,15 @@
       <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Unggah Video Baru</h5>
       <form id="uploadForm">
         <div class="mb-3">
-          <label class="form-label text-muted small">1. Pilih Berkas Video</label>
+          <label class="form-label text-muted small">1. Password Secret Admin</label>
+          <input type="password" id="secretInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan password admin..." required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label text-muted small">2. Pilih Berkas Video</label>
           <input type="file" id="videoInput" class="form-control bg-dark text-light border-secondary" accept="video/*" required>
         </div>
         <div class="mb-3">
-          <label class="form-label text-muted small">2. Judul Custom (Opsional - Kosongkan jika ingin pakai nama file)</label>
+          <label class="form-label text-muted small">3. Judul Custom (Opsional)</label>
           <input type="text" id="titleInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan judul video baru di sini...">
         </div>
         <button type="submit" id="uploadBtn" class="btn btn-purple px-4 fw-bold">
@@ -186,24 +190,29 @@
     }
 
     async function deleteVideo(videoId, title) {
-      if (confirm(`Apakah Anda yakin ingin menghapus video "${title}"?`)) {
-        try {
-          const res = await fetch(`/api/delete?id=${videoId}`, { method: 'DELETE' });
-          const data = await res.json();
-          if (data.success) {
-            alert('Video berhasil dihapus!');
-            loadVideos();
-          } else {
-            alert('Gagal menghapus video: ' + data.error);
-          }
-        } catch (err) {
-          alert('Terjadi kesalahan saat menghapus video.');
+      const secret = prompt(`Masukkan Password Secret Admin untuk menghapus "${title}":`);
+      if (!secret) return;
+
+      try {
+        const res = await fetch(`/api/delete?id=${videoId}`, { 
+          method: 'DELETE',
+          headers: { 'x-secret-key': secret }
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert('Video berhasil dihapus!');
+          loadVideos();
+        } else {
+          alert('Gagal: ' + data.error);
         }
+      } catch (err) {
+        alert('Terjadi kesalahan saat menghapus video.');
       }
     }
 
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
+      const secretInput = document.getElementById('secretInput');
       const fileInput = document.getElementById('videoInput');
       const titleInput = document.getElementById('titleInput');
       const uploadBtn = document.getElementById('uploadBtn');
@@ -212,6 +221,7 @@
       if (!fileInput.files[0]) return;
 
       const formData = new FormData();
+      formData.append('secret_key', secretInput.value);
       formData.append('video', fileInput.files[0]);
       formData.append('title', titleInput.value.trim());
 

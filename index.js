@@ -35,6 +35,7 @@ export default {
             mimeType: metadata.mimeType || 'video/mp4',
             size: metadata.size || 0,
             uploadedAt: metadata.uploadedAt || new Date().toISOString(),
+            isExternal: metadata.isExternal || false,
             watchUrl: `${url.origin}/v/${videoId}`,
             embedUrl: `${url.origin}/embed/${videoId}`,
             streamUrl: `${url.origin}/stream/${videoId}`
@@ -54,7 +55,7 @@ export default {
       }
     }
 
-    // 2. API Endpoint to Upload Video (Protected with Password)
+    // 2. API Endpoint to Upload (File MP4 ATAU External URL)
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
@@ -68,17 +69,45 @@ export default {
         }
 
         const videoFile = formData.get('video');
+        const externalUrl = formData.get('external_url');
         const customTitle = formData.get('title');
-        
+
+        const videoId = Math.random().toString(36).substring(2, 10);
+
+        // Opsi A: Menggunakan External URL Video (Tanpa Download)
+        if (externalUrl && externalUrl.trim() !== '') {
+          const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : 'External Stream Video';
+          
+          await env.VIDEOS_KV.put(`video:${videoId}`, 'EXTERNAL_LINK', {
+            metadata: {
+              title: videoTitle,
+              externalUrl: externalUrl.trim(),
+              isExternal: true,
+              uploadedAt: new Date().toISOString()
+            }
+          });
+
+          return new Response(JSON.stringify({
+            success: true,
+            videoId: videoId,
+            title: videoTitle,
+            watchUrl: `${url.origin}/v/${videoId}`,
+            embedUrl: `${url.origin}/embed/${videoId}`,
+            streamUrl: `${url.origin}/stream/${videoId}`
+          }), {
+            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+          });
+        }
+
+        // Opsi B: Unggah File Fisik Biasa
         if (!videoFile) {
-          return new Response(JSON.stringify({ error: 'Video file not found.' }), {
+          return new Response(JSON.stringify({ error: 'Harap pilih file video ATAU masukkan URL video.' }), {
             status: 400,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
         }
 
         const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : videoFile.name;
-        const videoId = Math.random().toString(36).substring(2, 10);
         const arrayBuffer = await videoFile.arrayBuffer();
 
         await env.VIDEOS_KV.put(`video:${videoId}`, arrayBuffer, {
@@ -86,6 +115,7 @@ export default {
             title: videoTitle,
             mimeType: videoFile.type || 'video/mp4',
             size: videoFile.size,
+            isExternal: false,
             uploadedAt: new Date().toISOString()
           }
         });
@@ -108,7 +138,7 @@ export default {
       }
     }
 
-    // 3. API Endpoint to Delete Video (Protected with Password)
+    // 3. API Endpoint to Delete Video
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
         const authKey = request.headers.get('x-secret-key');
@@ -140,12 +170,11 @@ export default {
       }
     }
 
-    // 4. Raw Stream Video Endpoint (DENGAN PROTEKSI AKSES LANGSUNG)
+    // 4. Raw Stream Video Endpoint (Mendukung Local & External Stream)
     if (url.pathname.startsWith('/stream/')) {
       const referer = request.headers.get('referer') || '';
       const secFetchMode = request.headers.get('sec-fetch-mode') || '';
 
-      // Blokir jika dibuka langsung di tab browser tanpa melalui halaman /v/
       if (secFetchMode === 'navigate' && !referer.includes(url.origin)) {
         return new Response('Akses Langsung Ditolak! Silakan tonton melalui halaman resmi.', { 
           status: 403,
@@ -156,8 +185,13 @@ export default {
       const videoId = url.pathname.split('/stream/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`, { type: 'arrayBuffer' });
 
-      if (!videoData.value) {
+      if (!videoData.metadata) {
         return new Response('Video not found or has been deleted.', { status: 404 });
+      }
+
+      // Jika ini External Link, redirect/stream langsung dari sumber asli
+      if (videoData.metadata.isExternal && videoData.metadata.externalUrl) {
+        return Response.redirect(videoData.metadata.externalUrl, 302);
       }
 
       return new Response(videoData.value, {
@@ -178,7 +212,8 @@ export default {
         return new Response('Video not found.', { status: 404 });
       }
 
-      const streamUrl = `${url.origin}/stream/${videoId}`;
+      // Pilih URL stream internal atau external
+      const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
 
       const watchHtml = `<!DOCTYPE html>
@@ -256,8 +291,14 @@ export default {
     // 6. Embed Player Endpoint (/embed/videoId)
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
-      const streamUrl = `${url.origin}/stream/${videoId}`;
-      
+      const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
+
+      if (!videoData.metadata) {
+        return new Response('Video not found.', { status: 404 });
+      }
+
+      const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
+
       const embedHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>

@@ -47,12 +47,7 @@
       <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Tambah Video Baru</h5>
       <form id="uploadForm">
         <div class="mb-3">
-          <label class="form-label small">1. Password Secret Admin</label>
-          <input type="password" id="secretInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan password admin (contoh: rahasia123)..." required>
-        </div>
-        
-        <div class="mb-3">
-          <label class="form-label small">2. Unggah File Video (Saran: File MP4 < 25MB)</label>
+          <label class="form-label small">1. Unggah File Video (Saran: File MP4 < 25MB)</label>
           <input type="file" id="videoInput" class="form-control bg-dark text-light border-secondary" accept="video/*">
         </div>
 
@@ -224,7 +219,6 @@
 
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
-      const secretInput = document.getElementById('secretInput');
       const fileInput = document.getElementById('videoInput');
       const externalUrlInput = document.getElementById('externalUrlInput');
       const titleInput = document.getElementById('titleInput');
@@ -232,7 +226,6 @@
       const progress = document.getElementById('uploadProgress');
 
       const formData = new FormData();
-      formData.append('secret_key', secretInput.value);
       formData.append('title', titleInput.value.trim());
 
       if (externalUrlInput.value.trim() !== '') {

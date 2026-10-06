@@ -42,22 +42,32 @@
     
     <!-- Upload Section -->
     <div id="uploadSection" class="card card-custom p-4 mb-5">
-      <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Unggah Video Baru</h5>
+      <h5 class="fw-bold text-white mb-3"><i class="fa-solid fa-cloud-arrow-up me-2 text-primary"></i>Tambah Video Baru</h5>
       <form id="uploadForm">
         <div class="mb-3">
           <label class="form-label text-muted small">1. Password Secret Admin</label>
           <input type="password" id="secretInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan password admin..." required>
         </div>
+        
         <div class="mb-3">
-          <label class="form-label text-muted small">2. Pilih Berkas Video</label>
-          <input type="file" id="videoInput" class="form-control bg-dark text-light border-secondary" accept="video/*" required>
+          <label class="form-label text-muted small">2. Unggah File Video (Saran: File MP4 < 25MB)</label>
+          <input type="file" id="videoInput" class="form-control bg-dark text-light border-secondary" accept="video/*">
         </div>
+
+        <div class="text-center my-2 text-muted fw-bold small">--- ATAU ---</div>
+
+        <div class="mb-3">
+          <label class="form-label text-muted small">2. Gunakan Direct Link Video Luar (Tanpa Download / Tanpa Batas Ukuran)</label>
+          <input type="url" id="externalUrlInput" class="form-control bg-dark text-light border-secondary" placeholder="https://situs-lain.com/video.mp4">
+        </div>
+
         <div class="mb-3">
           <label class="form-label text-muted small">3. Judul Custom (Opsional)</label>
-          <input type="text" id="titleInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan judul video baru di sini...">
+          <input type="text" id="titleInput" class="form-control bg-dark text-light border-secondary" placeholder="Masukkan judul video di sini...">
         </div>
+
         <button type="submit" id="uploadBtn" class="btn btn-purple px-4 fw-bold">
-          <i class="fa-solid fa-upload me-2"></i>Mulai Proses Upload
+          <i class="fa-solid fa-plus me-2"></i>Tambah Video
         </button>
       </form>
       <div id="uploadProgress" class="progress mt-3 d-none" style="height: 10px;">
@@ -82,7 +92,7 @@
           <thead>
             <tr>
               <th>Judul Video</th>
-              <th>Ukuran</th>
+              <th>Tipe Storage</th>
               <th>Tanggal</th>
               <th class="text-end">Aksi & Tautan</th>
             </tr>
@@ -130,7 +140,7 @@
     let allVideos = [];
 
     function formatBytes(bytes) {
-      if (bytes === 0) return '0 Bytes';
+      if (!bytes || bytes === 0) return 'External Link';
       const k = 1024;
       const sizes = ['Bytes', 'KB', 'MB', 'GB'];
       const i = Math.floor(Math.log(bytes) / Math.log(k));
@@ -169,7 +179,7 @@
               <span class="fw-semibold text-white">${v.title}</span>
             </div>
           </td>
-          <td class="text-muted small">${formatBytes(v.size)}</td>
+          <td class="text-muted small">${v.isExternal ? '<span class="badge bg-info text-dark">External URL</span>' : formatBytes(v.size)}</td>
           <td class="text-muted small">${new Date(v.uploadedAt).toISOString().split('T')[0]}</td>
           <td class="text-end">
             <button onclick="playVideo('${v.embedUrl}', '${v.title}')" class="btn btn-sm btn-action me-1">
@@ -214,16 +224,23 @@
       e.preventDefault();
       const secretInput = document.getElementById('secretInput');
       const fileInput = document.getElementById('videoInput');
+      const externalUrlInput = document.getElementById('externalUrlInput');
       const titleInput = document.getElementById('titleInput');
       const uploadBtn = document.getElementById('uploadBtn');
       const progress = document.getElementById('uploadProgress');
 
-      if (!fileInput.files[0]) return;
-
       const formData = new FormData();
       formData.append('secret_key', secretInput.value);
-      formData.append('video', fileInput.files[0]);
       formData.append('title', titleInput.value.trim());
+
+      if (externalUrlInput.value.trim() !== '') {
+        formData.append('external_url', externalUrlInput.value.trim());
+      } else if (fileInput.files[0]) {
+        formData.append('video', fileInput.files[0]);
+      } else {
+        alert('Pilih file video ATAU isi Direct Link Video!');
+        return;
+      }
 
       uploadBtn.disabled = true;
       progress.classList.remove('d-none');
@@ -233,15 +250,16 @@
         const data = await res.json();
 
         if (data.success) {
-          alert('Video berhasil diunggah!');
+          alert('Video berhasil ditambahkan!');
           fileInput.value = '';
+          externalUrlInput.value = '';
           titleInput.value = '';
           loadVideos();
         } else {
-          alert('Gagal unggah: ' + data.error);
+          alert('Gagal: ' + data.error);
         }
       } catch (err) {
-        alert('Terjadi kesalahan saat unggah video.');
+        alert('Terjadi kesalahan saat menambahkan video.');
       } finally {
         uploadBtn.disabled = false;
         progress.classList.add('d-none');

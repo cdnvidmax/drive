@@ -3,7 +3,7 @@ export default {
     const url = new URL(request.url);
 
     // ==========================================
-    // 🔑 PASSWORD RAHASIA ADMIN
+    // 🔑 PASSWORD RAHASIA KHUSUS HAPUS VIDEO
     // ==========================================
     const ADMIN_SECRET_KEY = "rahasia123"; 
 
@@ -55,26 +55,17 @@ export default {
       }
     }
 
-    // 2. API Endpoint to Upload (File MP4 ATAU External URL)
+    // 2. API Endpoint to Upload (TANPA PASSWORD)
     if (url.pathname === '/api/upload' && request.method === 'POST') {
       try {
         const formData = await request.formData();
-        const authKey = formData.get('secret_key');
-
-        if (authKey !== ADMIN_SECRET_KEY) {
-          return new Response(JSON.stringify({ error: 'Access Denied: Incorrect Admin Password!' }), {
-            status: 403,
-            headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-          });
-        }
-
         const videoFile = formData.get('video');
         const externalUrl = formData.get('external_url');
         const customTitle = formData.get('title');
 
         const videoId = Math.random().toString(36).substring(2, 10);
 
-        // Opsi A: Menggunakan External URL Video (Tanpa Download)
+        // Opsi A: External URL Video
         if (externalUrl && externalUrl.trim() !== '') {
           const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : 'External Stream Video';
           
@@ -138,13 +129,13 @@ export default {
       }
     }
 
-    // 3. API Endpoint to Delete Video
+    // 3. API Endpoint to Delete Video (DENGAN VERIFIKASI PASSWORD)
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
         const authKey = request.headers.get('x-secret-key');
 
         if (authKey !== ADMIN_SECRET_KEY) {
-          return new Response(JSON.stringify({ error: 'Access Denied: Incorrect Admin Password!' }), {
+          return new Response(JSON.stringify({ error: 'Akses Ditolak: Password Admin Salah!' }), {
             status: 403,
             headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
           });
@@ -152,14 +143,14 @@ export default {
 
         const videoId = url.searchParams.get('id');
         if (!videoId) {
-          return new Response(JSON.stringify({ error: 'Video ID is required.' }), { 
+          return new Response(JSON.stringify({ error: 'Video ID diperlukan.' }), { 
             status: 400, 
             headers: { 'Access-Control-Allow-Origin': '*' } 
           });
         }
 
         await env.VIDEOS_KV.delete(`video:${videoId}`);
-        return new Response(JSON.stringify({ success: true, message: 'Video deleted successfully.' }), {
+        return new Response(JSON.stringify({ success: true, message: 'Video berhasil dihapus.' }), {
           headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
         });
       } catch (err) {
@@ -170,7 +161,7 @@ export default {
       }
     }
 
-    // 4. Raw Stream Video Endpoint (Mendukung Local & External Stream)
+    // 4. Raw Stream Video Endpoint (Protected Direct Access)
     if (url.pathname.startsWith('/stream/')) {
       const referer = request.headers.get('referer') || '';
       const secFetchMode = request.headers.get('sec-fetch-mode') || '';
@@ -189,7 +180,6 @@ export default {
         return new Response('Video not found or has been deleted.', { status: 404 });
       }
 
-      // Jika ini External Link, redirect/stream langsung dari sumber asli
       if (videoData.metadata.isExternal && videoData.metadata.externalUrl) {
         return Response.redirect(videoData.metadata.externalUrl, 302);
       }
@@ -212,7 +202,6 @@ export default {
         return new Response('Video not found.', { status: 404 });
       }
 
-      // Pilih URL stream internal atau external
       const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
 

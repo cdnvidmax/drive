@@ -8,10 +8,10 @@ export default {
     const ADMIN_SECRET_KEY = "rahasia123"; 
 
     // ==========================================
-    // 🔗 DIRECT LINKS UNTUK IKLAN
+    // 🔗 DIRECT LINKS UNTUK IKLAN (TOMBOL)
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://www.highratecpmgate.com/link-ads-1"; 
-    const ADSTERRA_DIRECT_LINK_2 = "https://www.highratecpmgate.com/link-ads-2"; 
+    const ADSTERRA_DIRECT_LINK_1 = "https://t.co/biSIUVAk5E"; // Link Tombol Hijau
+    const ADSTERRA_DIRECT_LINK_2 = "https://t.co/uzX4Wxy1sc"; // Link Tombol Merah
 
     // ==========================================
     // 🛡️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
@@ -251,6 +251,7 @@ export default {
   <div class="container my-3">
     <div class="row justify-content-center">
       <div class="col-lg-10">
+        <!-- PEMUTAR VIDEO -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata" controlsList="nodownload" disablePictureInPicture oncontextmenu="return false;">
             <source src="${streamUrl}" type="video/mp4">
@@ -258,6 +259,14 @@ export default {
           </video>
         </div>
 
+        <!-- 🔻 [TEMPEL KODE IKLAN BANNER / NATIVE DI SINI] 🔻 -->
+        <div class="my-3 text-center">
+<script async="async" data-cfasync="false" src="https://nooseamazingbatch.com/98b136328d03b660ab4326cd1aeb3e3a/invoke.js"></script>
+<div id="container-98b136328d03b660ab4326cd1aeb3e3a"></div>
+        </div>
+        <!-- 🔺 =============================================== 🔺 -->
+
+        <!-- HIGH CTR BUTTONS -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
           <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn btn-ad-download py-2 px-4 shadow-sm w-100">
             <i class="fa-solid fa-circle-play me-2"></i>WATCH FULL LENGTH VIDEO
@@ -325,6 +334,12 @@ export default {
     </video>
   </div>
   
+  <!-- 🔻 [TEMPEL KODE IKLAN BANNER KECIL UNTUK EMBED JIKA ADA] 🔻 -->
+  <div class="text-center bg-dark">
+    <!-- TEMPEL KODE IKLAN BANNER EMBED DI SINI -->
+  </div>
+  <!-- 🔺 ==================================================== 🔺 -->
+
   <div class="buttons-container">
     <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">
       <i class="fa-solid fa-circle-play"></i> WATCH FULL LENGTH VIDEO

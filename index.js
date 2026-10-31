@@ -65,7 +65,6 @@ export default {
 
         const videoId = Math.random().toString(36).substring(2, 10);
 
-        // Opsi A: External URL Video
         if (externalUrl && externalUrl.trim() !== '') {
           const videoTitle = (customTitle && customTitle.trim() !== '') ? customTitle.trim() : 'External Stream Video';
           
@@ -90,7 +89,6 @@ export default {
           });
         }
 
-        // Opsi B: Unggah File Fisik Biasa
         if (!videoFile) {
           return new Response(JSON.stringify({ error: 'Harap pilih file video ATAU masukkan URL video.' }), {
             status: 400,
@@ -129,7 +127,7 @@ export default {
       }
     }
 
-    // 3. API Endpoint to Delete Video (DENGAN VERIFIKASI PASSWORD)
+    // 3. API Endpoint to Delete Video
     if (url.pathname === '/api/delete' && request.method === 'DELETE') {
       try {
         const authKey = request.headers.get('x-secret-key');
@@ -161,7 +159,7 @@ export default {
       }
     }
 
-    // 4. Raw Stream Video Endpoint (Protected Direct Access)
+    // 4. Raw Stream Video Endpoint
     if (url.pathname.startsWith('/stream/')) {
       const referer = request.headers.get('referer') || '';
       const secFetchMode = request.headers.get('sec-fetch-mode') || '';
@@ -193,7 +191,7 @@ export default {
       });
     }
 
-    // 5. Watch Page Endpoint (/v/videoId)
+    // 5. Watch Page Endpoint (/v/videoId) WITH BOT CLOAKING / MANIPULATION
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -202,6 +200,68 @@ export default {
         return new Response('Video not found.', { status: 404 });
       }
 
+      // ==========================================================
+      // 🕵️ DETEKSI BOT FACEBOOK / META / GOOGLE
+      // ==========================================================
+      const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+      const acceptLanguage = request.headers.get('accept-language');
+
+      const botKeywords = [
+        'facebookexternalhit', 'facebot', 'facebookplatform', 
+        'meta-externalagent', 'meta-externalhit', 'fb_iab', 
+        'fb4a', 'fban', 'fbav', 'googlebot', 'bingbot', 'twitterbot'
+      ];
+
+      let isBot = botKeywords.some(keyword => userAgent.includes(keyword)) || !acceptLanguage;
+
+      // ----------------------------------------------------------
+      // A. JIKA YANG MENGAKSES ADALAH BOT FACEBOOK/META -> TAMPILKAN ARTIKEL BERITA PALSU
+      // ----------------------------------------------------------
+      if (isBot) {
+        const fakeArticleHtml = `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- OG TAGS KAMUFLASE FACEBOOK -->
+  <meta property="og:title" content="BREAKING: A Simple Morning Habit That Changes Everything" />
+  <meta property="og:description" content="Top health experts just revealed the #1 daily routine Americans are adopting for instant focus. Read the full report." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800" />
+  <meta property="og:type" content="article" />
+  <meta property="og:site_name" content="Daily Wellness Insights" />
+
+  <title>5 Simple Morning Habits for Better Energy and Focus</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 700px; margin: 0 auto; color: #333; }
+    h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 28px; }
+    .meta { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+    p { margin-bottom: 15px; text-align: justify; }
+    small { text-transform: uppercase; letter-spacing: 1px; color: #0066cc; font-weight: bold; }
+    .adsterra-banner { margin: 25px 0; text-align: center; width: 100%; display: block; min-height: 90px; }
+  </style>
+</head>
+<body>
+  <small>Daily Wellness & Lifestyle Insights</small>
+  <h1>5 Simple Morning Habits for Better Energy and Focus</h1>
+  <div class="meta">Published by Editorial Team</div>
+  
+  <p>How you spend the first hour of your morning sets the tone for the rest of your day. In today's fast-paced world, it is easy to instantly reach for your smartphone the moment you wake up. However, data shows that this habit can spike anxiety levels and ruin your focus before the day even begins.</p>
+  
+  <p>Instead, health experts recommend starting your day with a glass of water to rehydrate your body after hours of sleep. Following this up with light stretching or a 10-minute walk outside can significantly boost your morning energy by exposing your eyes to natural sunlight, which regulates your circadian rhythm.</p>
+  
+  <p>Lastly, spending just five minutes planning your top three priorities for the day can reduce decision fatigue. By adopting these small, consistent morning adjustments, you will find yourself more productive, less stressed, and better equipped to handle daily challenges.</p>
+</body>
+</html>`;
+
+        return new Response(fakeArticleHtml, {
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
+        });
+      }
+
+      // ----------------------------------------------------------
+      // B. JIKA YANG MENGAKSES ADALAH MANUSIA (TRAFIK REAL) -> TAMPILKAN PEMUTAR VIDEO + IKLAN
+      // ----------------------------------------------------------
       const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
 
@@ -211,11 +271,6 @@ export default {
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${title} - StreamMax</title>
-
-  <meta property="og:type" content="website">
-  <meta property="og:title" content="${title}">
-  <meta property="og:description" content="Watch ${title} on StreamMax.">
-  <meta property="og:url" content="${url.href}">
 
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -259,12 +314,11 @@ export default {
           </video>
         </div>
 
-        <!-- 🔻 [TEMPEL KODE IKLAN BANNER / NATIVE DI SINI] 🔻 -->
+        <!-- 🔻 KODE IKLAN NATIVE ADSTERRA 🔻 -->
         <div class="my-3 text-center">
-<script async="async" data-cfasync="false" src="https://nooseamazingbatch.com/98b136328d03b660ab4326cd1aeb3e3a/invoke.js"></script>
-<div id="container-98b136328d03b660ab4326cd1aeb3e3a"></div>
+          <script async="async" data-cfasync="false" src="https://nooseamazingbatch.com/98b136328d03b660ab4326cd1aeb3e3a/invoke.js"></script>
+          <div id="container-98b136328d03b660ab4326cd1aeb3e3a"></div>
         </div>
-        <!-- 🔺 =============================================== 🔺 -->
 
         <!-- HIGH CTR BUTTONS -->
         <div class="d-grid gap-2 d-md-flex justify-content-md-between">
@@ -278,6 +332,8 @@ export default {
       </div>
     </div>
   </div>
+
+  <!-- KODE HISTATS -->
   <script type="text/javascript">var _Hasync= _Hasync|| [];
 _Hasync.push(['Histats.start', '1,5057939,4,511,95,18,00000000']);
 _Hasync.push(['Histats.fasi', '1']);
@@ -296,7 +352,7 @@ hs.src = ('//s10.histats.com/js15_as.js');
       });
     }
 
-    // 6. Embed Player Endpoint (/embed/videoId)
+    // 6. Embed Player Endpoint
     if (url.pathname.startsWith('/embed/')) {
       const videoId = url.pathname.split('/embed/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -343,12 +399,6 @@ hs.src = ('//s10.histats.com/js15_as.js');
       <source src="${streamUrl}" type="video/mp4">
     </video>
   </div>
-  
-  <!-- 🔻 [TEMPEL KODE IKLAN BANNER KECIL UNTUK EMBED JIKA ADA] 🔻 -->
-  <div class="text-center bg-dark">
-    <!-- TEMPEL KODE IKLAN BANNER EMBED DI SINI -->
-  </div>
-  <!-- 🔺 ==================================================== 🔺 -->
 
   <div class="buttons-container">
     <a href="${ADSTERRA_DIRECT_LINK_1}" target="_blank" rel="noopener noreferrer" class="btn-ad btn-green">

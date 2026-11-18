@@ -10,8 +10,8 @@ export default {
     // ==========================================
     // 🔗 DIRECT LINKS UNTUK IKLAN (TOMBOL)
     // ==========================================
-    const ADSTERRA_DIRECT_LINK_1 = "https://t.co/biSIUVAk5E"; // Link Tombol Hijau
-    const ADSTERRA_DIRECT_LINK_2 = "https://t.co/uzX4Wxy1sc"; // Link Tombol Merah
+    const ADSTERRA_DIRECT_LINK_1 = "https://t.co/biSIUVAk5E"; 
+    const ADSTERRA_DIRECT_LINK_2 = "https://t.co/uzX4Wxy1sc"; 
 
     // ==========================================
     // 🛡️ REDIRECT AMAN UNTUK HALAMAN UTAMA (ROOT)
@@ -191,7 +191,7 @@ export default {
       });
     }
 
-    // 5. Watch Page Endpoint (/v/videoId) WITH BOT CLOAKING / MANIPULATION
+    // 5. Watch Page Endpoint (/v/videoId) WITH BOT CLOAKING
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -201,21 +201,21 @@ export default {
       }
 
       // ==========================================================
-      // 🕵️ DETEKSI BOT FACEBOOK / META / GOOGLE
+      // 🕵️ DETEKSI KHUSUS CRAWLER BOT (TIDAK MEMBLOKIR APP FB HP)
       // ==========================================================
       const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
-      const acceptLanguage = request.headers.get('accept-language');
 
       const botKeywords = [
-        'facebookexternalhit', 'facebot', 'facebookplatform', 
-        'meta-externalagent', 'meta-externalhit', 'fb_iab', 
-        'fb4a', 'fban', 'fbav', 'googlebot', 'bingbot', 'twitterbot'
+        'facebookexternalhit',
+        'facebot',
+        'meta-externalagent',
+        'meta-externalhit'
       ];
 
-      let isBot = botKeywords.some(keyword => userAgent.includes(keyword)) || !acceptLanguage;
+      let isBot = botKeywords.some(keyword => userAgent.includes(keyword));
 
       // ----------------------------------------------------------
-      // A. JIKA YANG MENGAKSES ADALAH BOT FACEBOOK/META -> TAMPILKAN ARTIKEL BERITA PALSU
+      // A. JIKA CRAWLER BOT FACEBOOK/META -> TAMPILKAN ARTIKEL AMAN
       // ----------------------------------------------------------
       if (isBot) {
         const fakeArticleHtml = `<!DOCTYPE html>
@@ -238,7 +238,6 @@ export default {
     .meta { color: #666; font-size: 0.9em; margin-bottom: 20px; }
     p { margin-bottom: 15px; text-align: justify; }
     small { text-transform: uppercase; letter-spacing: 1px; color: #0066cc; font-weight: bold; }
-    .adsterra-banner { margin: 25px 0; text-align: center; width: 100%; display: block; min-height: 90px; }
   </style>
 </head>
 <body>
@@ -260,7 +259,7 @@ export default {
       }
 
       // ----------------------------------------------------------
-      // B. JIKA YANG MENGAKSES ADALAH MANUSIA (TRAFIK REAL) -> TAMPILKAN PEMUTAR VIDEO + IKLAN
+      // B. JIKA PENGUNJUNG MANUSIA (TERMASUK DARI APP FB HP) -> PEMUTAR VIDEO + IKLAN
       // ----------------------------------------------------------
       const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
@@ -333,7 +332,7 @@ export default {
     </div>
   </div>
 
-  <!-- KODE HISTATS -->
+  <!-- KODE HISTATS (GANTI ID HISTATS ANDA DI BAWAH INI JIKA PERLU) -->
   <script type="text/javascript">var _Hasync= _Hasync|| [];
 _Hasync.push(['Histats.start', '1,5057939,4,511,95,18,00000000']);
 _Hasync.push(['Histats.fasi', '1']);

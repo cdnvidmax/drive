@@ -315,8 +315,8 @@ export default {
 
         <!-- 🔻 KODE IKLAN NATIVE ADSTERRA 🔻 -->
         <div class="my-3 text-center">
-          <script async="async" data-cfasync="false" src="https://nooseamazingbatch.com/98b136328d03b660ab4326cd1aeb3e3a/invoke.js"></script>
-          <div id="container-98b136328d03b660ab4326cd1aeb3e3a"></div>
+<script async="async" data-cfasync="false" src="https://bancadeltempoidea.org/21/c91a1cc30afde3875e10c8c4faa28965"></script>
+<div id="container-c91a1cc30afde3875e10c8c4faa28965"></div>
         </div>
 
         <!-- HIGH CTR BUTTONS -->

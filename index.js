@@ -8,19 +8,6 @@ export default {
     const ADMIN_SECRET_KEY = "rahasia123"; 
 
     // ==========================================
-    // 🛡️ PENGATURAN DAFTAR DOMAIN JEMBATAN (BISA BANYAK)
-    // ==========================================
-    // Masukkan semua domain/subdomain jembatan tempat tombol diklik (huruf kecil, tanpa https://)
-    const ALLOWED_BRIDGE_DOMAINS = [
-      "cdn.vdey.app",
-      "a.4lif.shop",
-      "b.ivid.my",
-      "c.tcov.website",
-      "d.onlystream.space",
-      "e.onlystream.xyz"
-    ];
-
-    // ==========================================
     // 🔗 DIRECT LINKS UNTUK IKLAN (TOMBOL)
     // ==========================================
     const ADSTERRA_DIRECT_LINK_1 = "https://t.co/biSIUVAk5E"; 
@@ -204,7 +191,7 @@ export default {
       });
     }
 
-    // 5. Watch Page Endpoint (/v/videoId) WITH MULTI-BRIDGE REFERER LOCK & RANDOM SAFE PAGE
+    // 5. Watch Page Endpoint (/v/videoId) WITH BOT CLOAKING
     if (url.pathname.startsWith('/v/')) {
       const videoId = url.pathname.split('/v/')[1];
       const videoData = await env.VIDEOS_KV.getWithMetadata(`video:${videoId}`);
@@ -214,9 +201,10 @@ export default {
       }
 
       // ==========================================================
-      // 🕵️ LAPISAN 1: DETEKSI CRAWLER BOT FACEBOOK/META
+      // 🕵️ DETEKSI KHUSUS CRAWLER BOT (TIDAK MEMBLOKIR APP FB HP)
       // ==========================================================
       const userAgent = (request.headers.get('user-agent') || '').toLowerCase();
+
       const botKeywords = [
         'facebookexternalhit',
         'facebot',
@@ -226,129 +214,52 @@ export default {
 
       let isBot = botKeywords.some(keyword => userAgent.includes(keyword));
 
-      // ==========================================================
-      // 🔒 LAPISAN 2: KUNCI REFERER (WAJIB LEWAT SALAH SATU JEMBATAN / ADMIN)
-      // ==========================================================
-      const referer = (request.headers.get('referer') || '').toLowerCase();
-      const isFromBridge = ALLOWED_BRIDGE_DOMAINS.some(domain => referer.includes(domain.toLowerCase()));
-      const isFromAdmin = referer.includes(url.hostname.toLowerCase());
-
-      if (!isFromBridge && !isFromAdmin) {
-        isBot = true;
-      }
-
       // ----------------------------------------------------------
-      // A. TAMPILAN ARTIKEL RANDOM AMAN (UNTUK BOT & AKSES LANGSUNG)
+      // A. JIKA CRAWLER BOT FACEBOOK/META -> TAMPILKAN ARTIKEL AMAN
       // ----------------------------------------------------------
       if (isBot) {
-        const safeArticles = [
-          {
-            category: "Daily Wellness & Health",
-            siteName: "Wellness Today",
-            title: "5 Simple Morning Habits for Better Energy and Focus",
-            description: "Discover how small changes in your first hour after waking up can boost productivity and lower stress all day.",
-            image: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800",
-            paragraphs: [
-              "How you spend the first hour of your morning sets the tone for the rest of your day. Instead of immediately checking notifications, taking ten minutes to hydrate and stretch can significantly improve mental clarity.",
-              "Health researchers note that natural morning sunlight helps regulate your circadian rhythm, leading to better energy levels during the afternoon and deeper sleep at night.",
-              "Finally, writing down your top three priorities before opening your inbox reduces decision fatigue and keeps your workflow focused."
-            ]
-          },
-          {
-            category: "Home & Garden Tips",
-            siteName: "Modern Living Digest",
-            title: "7 Low-Maintenance Indoor Plants That Purify Your Home Air",
-            description: "Looking to refresh your living space? These hardy houseplants thrive in low light and require minimal watering.",
-            image: "https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=800",
-            paragraphs: [
-              "Bringing greenery indoors does more than enhance room aesthetics—it creates a calmer environment and improves indoor air quality throughout the year.",
-              "Plants like the Snake Plant, ZZ Plant, and Pothos are ideal for busy homeowners because they tolerate indirect sunlight and only need watering every couple of weeks.",
-              "Placing a few of these resilient plants near your workspace can also help reduce eye strain and promote a more relaxing atmosphere."
-            ]
-          },
-          {
-            category: "Personal Finance & Budgeting",
-            siteName: "Smart Money Guide",
-            title: "How the 50/30/20 Rule Simplifies Monthly Household Budgeting",
-            description: "A practical breakdown of how to balance essential bills, personal spending, and long-term savings without complex spreadsheets.",
-            image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800",
-            paragraphs: [
-              "Managing monthly expenses does not require tracking every single penny. The 50/30/20 framework divides after-tax income into three clear buckets: needs, wants, and savings.",
-              "Allocating half of your budget to housing, utilities, and groceries ensures core obligations are always covered before discretionary purchases.",
-              "Automating transfers into a dedicated emergency fund at the start of each month makes consistent saving effortless over time."
-            ]
-          },
-          {
-            category: "Travel & Exploration",
-            siteName: "Scenic Routes Journal",
-            title: "Top Coastal Road Trips to Plan for Your Next Weekend Getaway",
-            description: "Explore scenic oceanfront highways, charming small towns, and hidden overlooks worth adding to your travel list.",
-            image: "https://images.unsplash.com/photo-1469854523086-cc02fe5d8800?w=800",
-            paragraphs: [
-              "A weekend road trip along the coast offers the perfect reset without needing weeks of vacation time or complicated flight itineraries.",
-              "Starting early in the morning lets you enjoy quiet coastal viewpoints, local bakeries, and historic lighthouses before midday crowds arrive.",
-              "Packing a simple cooler and leaving room in your schedule for spontaneous detours turns an ordinary drive into a memorable adventure."
-            ]
-          },
-          {
-            category: "Culinary & Nutrition",
-            siteName: "Everyday Kitchen",
-            title: "Quick 15-Minute Mediterranean Dinner Ideas for Busy Weeknights",
-            description: "Healthy, flavorful recipes using pantry staples like olive oil, garlic, fresh herbs, and seasonal vegetables.",
-            image: "https://images.unsplash.com/photo-1512621776951-a57141f2eefd?w=800",
-            paragraphs: [
-              "Cooking a nutritious dinner after a long workday is much easier when you rely on simple Mediterranean ingredients that pack bold natural flavor.",
-              "Combining roasted vegetables, chickpeas, lemon juice, and extra-virgin olive oil creates a balanced meal in under fifteen minutes with minimal cleanup.",
-              "Preparing a batch of grains like quinoa or farro at the beginning of the week makes assembling fresh bowls fast and convenient."
-            ]
-          }
-        ];
-
-        // Pilih 1 artikel secara acak setiap kali halaman diakses
-        const randomArticle = safeArticles[Math.floor(Math.random() * safeArticles.length)];
-        const paragraphsHtml = randomArticle.paragraphs.map(p => `<p>${p}</p>`).join('\n  ');
-
         const fakeArticleHtml = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <meta property="og:title" content="${randomArticle.title}" />
-  <meta property="og:description" content="${randomArticle.description}" />
-  <meta property="og:image" content="${randomArticle.image}" />
+  <!-- OG TAGS KAMUFLASE FACEBOOK -->
+  <meta property="og:title" content="BREAKING: A Simple Morning Habit That Changes Everything" />
+  <meta property="og:description" content="Top health experts just revealed the #1 daily routine Americans are adopting for instant focus. Read the full report." />
+  <meta property="og:image" content="https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800" />
   <meta property="og:type" content="article" />
-  <meta property="og:site_name" content="${randomArticle.siteName}" />
+  <meta property="og:site_name" content="Daily Wellness Insights" />
 
-  <title>${randomArticle.title}</title>
+  <title>5 Simple Morning Habits for Better Energy and Focus</title>
   <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.7; padding: 24px; max-width: 720px; margin: 0 auto; color: #2d3748; background: #fff; }
-    h1 { color: #1a202c; border-bottom: 2px solid #edf2f7; padding-bottom: 12px; font-size: 26px; margin-top: 8px; }
-    .meta { color: #718096; font-size: 0.9em; margin-bottom: 20px; }
-    .hero-img { width: 100%; max-height: 360px; object-fit: cover; border-radius: 8px; margin-bottom: 20px; }
-    p { margin-bottom: 16px; text-align: justify; }
-    small { text-transform: uppercase; letter-spacing: 1px; color: #2b6cb0; font-weight: bold; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; line-height: 1.6; padding: 20px; max-width: 700px; margin: 0 auto; color: #333; }
+    h1 { color: #111; border-bottom: 2px solid #eee; padding-bottom: 10px; font-size: 28px; }
+    .meta { color: #666; font-size: 0.9em; margin-bottom: 20px; }
+    p { margin-bottom: 15px; text-align: justify; }
+    small { text-transform: uppercase; letter-spacing: 1px; color: #0066cc; font-weight: bold; }
   </style>
 </head>
 <body>
-  <small>${randomArticle.category}</small>
-  <h1>${randomArticle.title}</h1>
-  <div class="meta">Published by ${randomArticle.siteName} Editorial Team</div>
-  <img src="${randomArticle.image}" alt="${randomArticle.title}" class="hero-img">
-  ${paragraphsHtml}
+  <small>Daily Wellness & Lifestyle Insights</small>
+  <h1>5 Simple Morning Habits for Better Energy and Focus</h1>
+  <div class="meta">Published by Editorial Team</div>
+  
+  <p>How you spend the first hour of your morning sets the tone for the rest of your day. In today's fast-paced world, it is easy to instantly reach for your smartphone the moment you wake up. However, data shows that this habit can spike anxiety levels and ruin your focus before the day even begins.</p>
+  
+  <p>Instead, health experts recommend starting your day with a glass of water to rehydrate your body after hours of sleep. Following this up with light stretching or a 10-minute walk outside can significantly boost your morning energy by exposing your eyes to natural sunlight, which regulates your circadian rhythm.</p>
+  
+  <p>Lastly, spending just five minutes planning your top three priorities for the day can reduce decision fatigue. By adopting these small, consistent morning adjustments, you will find yourself more productive, less stressed, and better equipped to handle daily challenges.</p>
 </body>
 </html>`;
 
         return new Response(fakeArticleHtml, {
-          headers: { 
-            'Content-Type': 'text/html; charset=utf-8',
-            'Cache-Control': 'no-store, no-cache, must-revalidate'
-          }
+          headers: { 'Content-Type': 'text/html; charset=utf-8' }
         });
       }
 
       // ----------------------------------------------------------
-      // B. TAMPILAN PEMUTAR VIDEO + IKLAN (PENGUNJUNG VALID DARI JEMBATAN)
+      // B. JIKA PENGUNJUNG MANUSIA (TERMASUK DARI APP FB HP) -> PEMUTAR VIDEO + IKLAN
       // ----------------------------------------------------------
       const streamUrl = videoData.metadata.isExternal ? videoData.metadata.externalUrl : `${url.origin}/stream/${videoId}`;
       const title = videoData.metadata.title || `Video ${videoId}`;
@@ -394,6 +305,7 @@ export default {
   <div class="container my-3">
     <div class="row justify-content-center">
       <div class="col-lg-10">
+        <!-- PEMUTAR VIDEO -->
         <div class="video-container mb-3">
           <video controls autoplay playsinline preload="metadata" controlsList="nodownload" disablePictureInPicture oncontextmenu="return false;">
             <source src="${streamUrl}" type="video/mp4">
